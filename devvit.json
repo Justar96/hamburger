@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "choice-chorus",
+  
+  "post": {
+    "dir": "public",
+    "entrypoints": {
+      "default": {
+        "entry": "index.html",
+        "height": "tall"
+      }
+    }
+  },
+  
+  "server": {
+    "entry": "dist/server/index.js"
+  },
+  
+  "permissions": {
+    "redis": true,
+    "realtime": true,
+    "media": true,
+    "http": {
+      "enable": false
+    },
+    "reddit": {
+      "enable": false
+    }
+  },
+  
+  "triggers": {
+    "onAppInstall": "/internal/install"
+  },
+  
+  "dev": {
+    "subreddit": "your-test-subreddit"
+  }
+}
