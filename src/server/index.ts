@@ -71,6 +71,7 @@ app.use((req, res) => {
 const server = createServer(app);
 const port = getServerPort();
 server.listen(port, () => {
+  // eslint-disable-next-line no-console
   console.log(`Server listening on port ${port}`);
 });
 

@@ -1,1 +1,2 @@
-- always use search tools to get infomation about `devvit` framework
+- always use mcp tools to get infomation about `devvit` framework
+- use pnpm

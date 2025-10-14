@@ -4,20 +4,21 @@
   "description": "Daily collaborative prompt generation for Reddit - A Devvit Web interactive post application",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm:dev:*\"",
+    "dev": "concurrently \"pnpm:dev:*\"",
     "dev:server": "tsx watch src/server/index.ts",
     "dev:client": "vite",
-    "build": "npm run build:server && npm run build:client",
+    "build": "pnpm run build:server && pnpm run build:client",
     "build:server": "tsc -p tsconfig.server.json",
     "build:client": "echo Client assets already in public/ directory",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:integration": "vitest run tests/integration --config vitest.integration.config.ts",
     "test:e2e": "playwright test",
-    "test:all": "npm run test && npm run test:e2e",
+    "test:all": "pnpm run test && pnpm run test:integration && pnpm run test:e2e",
     "lint": "eslint src/",
     "format": "prettier --write src/",
     "format:check": "prettier --check src/",
-    "validate": "echo 'devvit validate command placeholder'"
+    "validate": "vitest run tests/devvit-validation.test.ts"
   },
   "keywords": [
     "reddit",
@@ -42,7 +43,8 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vite": "^7.1.10",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "yaml": "^2.8.1"
   },
   "dependencies": {
     "@devvit/server": "^0.12.1",
