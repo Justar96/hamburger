@@ -1,8 +1,3 @@
-Got it. I took your blueprint, **fixed the Devvit schema and API details**, **replaced placeholder refs with real docs**, and **called out anything that would bite you during review**. This is tight enough to ship in a 2‑week sprint without wishful thinking.
-
-Below is the **finalized MVP spec** with **correct links** and **platform‑accurate config**. Where important, I annotated changes in **⚠️ Notes** so you don’t accidentally cargo‑cult an outdated pattern.
-
----
 
 # Beef — MVP spec for Devvit Web (Hackathon Oct 13–29, 2025)
 

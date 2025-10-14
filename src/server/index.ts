@@ -10,6 +10,11 @@ if (process.env.NODE_ENV !== 'production') {
     postId: 't3_test',
     appAccountId: 't2_app',
     appName: 'choice-chorus',
+    appVersion: '0.1.0',
+    metadata: {
+      appName: { values: ['choice-chorus'] },
+      appVersion: { values: ['0.1.0'] },
+    },
     debug: {
       effects: {},
       metadata: {},

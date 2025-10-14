@@ -150,7 +150,11 @@
   - Test error state when server is unreachable
   - _Requirements: 8.1, 8.3, 8.4, 8.5_
 
-- [ ] 9. Configure build pipeline
+- [x] 9. Configure build pipeline
+
+
+
+
   - Add build:server script to compile TypeScript to dist/server/index.js
   - Add build:client script to copy public/ assets (or use Vite if needed)
   - Add build script that runs both server and client builds
@@ -158,7 +162,9 @@
   - Test that built server can be run with node dist/server/index.js
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
-- [ ] 9.1 Write unit tests for build validation
+- [x] 9.1 Write unit tests for build validation
+
+
   - Create tests/build.test.ts
   - Test that dist/server/index.js exists after build
   - Test that public/ directory contains index.html
