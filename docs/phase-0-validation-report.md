@@ -249,7 +249,8 @@ choice-chorus/
 
 1. **Package Manager:** Using `pnpm` instead of `npm` (as specified in steering rules)
    - Rationale: Better performance and disk space efficiency
-   - Impact: None - all commands work identically
+   - Impact: CI workflow updated to use pnpm with `pnpm/action-setup@v4`
+   - Fix applied: All jobs now use `pnpm install --frozen-lockfile`
 
 2. **Devvit Validation:** Implemented as test suite instead of CLI command
    - Rationale: `devvit` CLI not available in local environment
