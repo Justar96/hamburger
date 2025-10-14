@@ -172,14 +172,20 @@
   - Test that build script exits with code 0 on success
   - _Requirements: 9.1, 9.2, 9.3, 9.4_
 
-- [ ] 10. Set up environment configuration
+- [x] 10. Set up environment configuration
+
+
+
+
   - Create .env.example with documented environment variables (NODE_ENV, PORT, REDIS_URL)
   - Add .env to .gitignore
   - Document that .env is for local development only
   - Add placeholder comments for Vertex AI variables (for later phases)
   - _Requirements: 5.2, 5.3, 5.4_
 
-- [ ] 10.1 Write unit tests for environment configuration
+
+- [x] 10.1 Write unit tests for environment configuration
+
   - Create tests/env.test.ts
   - Test that .env.example exists and is readable
   - Test that .env.example contains required variables (NODE_ENV, PORT, REDIS_URL)
@@ -187,7 +193,12 @@
   - Test that environment variable loading works correctly
   - _Requirements: 5.2, 5.3, 5.4_
 
-- [ ] 11. Create GitHub Actions CI pipeline
+- [x] 11. Create GitHub Actions CI pipeline
+
+
+
+
+
   - Create .github/workflows/ci.yml with workflow triggers (push to main, PRs)
   - Add lint job with pnpm setup, install, and lint/format checks
   - Add test-unit job with pnpm setup and vitest run
@@ -197,7 +208,9 @@
   - Configure jobs to run in parallel
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 3.2_
 
-- [ ] 11.1 Write tests for CI pipeline validation
+- [x] 11.1 Write tests for CI pipeline validation
+
+
   - Create tests/ci.test.ts
   - Test that .github/workflows/ci.yml is valid YAML
   - Test that all required jobs (lint, test-unit, test-integration, test-e2e, build) are defined
@@ -205,14 +218,23 @@
   - Test that Redis service is configured for integration job
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 3.2_
 
-- [ ] 12. Configure GitHub secrets for CI
+- [x] 12. Configure GitHub secrets for CI
+
+
+
+
   - Document required GitHub environment secrets in README
   - Add placeholder for GCP_PROJECT_ID secret (for later phases)
   - Add placeholder for VERTEX_API_KEY secret (for later phases)
   - Note that secrets are not needed for Phase 0 but structure is ready
   - _Requirements: 5.1_
 
-- [ ] 13. Create README.md with run instructions
+- [x] 13. Create README.md with run instructions
+
+
+
+
+
   - Add project title and brief description
   - Add Quick Start section with install, dev, test, and build commands
   - Add Development section with prerequisites (Node 20+, Redis)
@@ -221,7 +243,12 @@
   - Reference .env.example for configuration
   - _Requirements: 10.1, 10.2_
 
-- [ ] 14. Create SUBMISSION.md skeleton
+- [x] 14. Create SUBMISSION.md skeleton
+
+
+
+
+
   - Add hackathon submission template with team section
   - Add categories section (Community Play, Kiro DevEx)
   - Add description placeholder
@@ -229,7 +256,16 @@
   - Add demo, video, and source link placeholders
   - _Requirements: 10.3, 10.4_
 
-- [ ] 15. Verify local development environment
+- [x] 15. Verify local development environment
+
+
+
+
+
+
+
+
+
   - Run pnpm install and verify all dependencies install successfully
   - Run pnpm dev and verify server starts without errors
   - Access http://localhost:3000/api/health and verify JSON response
@@ -238,7 +274,9 @@
   - Run pnpm format --check and verify formatting is correct
   - _Requirements: 11.1, 11.2, 11.3_
 
-- [ ] 15.1 Write integration tests for local development
+- [x] 15.1 Write integration tests for local development
+
+
   - Create tests/integration/dev-environment.test.ts
   - Test that server starts and listens on correct port
   - Test that /api/health endpoint is accessible
@@ -246,7 +284,12 @@
   - Test that hot reload works for server changes (if applicable)
   - _Requirements: 11.1, 11.2, 11.3_
 
-- [ ] 16. Validate Devvit configuration
+- [x] 16. Validate Devvit configuration
+
+
+
+
+
   - Run devvit validate command (or equivalent validation)
   - Verify no schema errors in devvit.json
   - Verify post entrypoint references correct file
@@ -254,7 +297,10 @@
   - Verify permissions are correctly configured
   - _Requirements: 6.3, 11.4_
 
-- [ ] 17. Verify CI pipeline
+- [-] 17. Verify CI pipeline
+
+
+
   - Push code to GitHub and trigger CI workflow
   - Verify lint job passes
   - Verify test-unit job passes with all unit tests
@@ -264,7 +310,10 @@
   - Confirm all jobs show green status
   - _Requirements: 4.6, 11.5_
 
-- [ ] 17.1 Write tests for CI job outputs
+- [x] 17.1 Write tests for CI job outputs
+
+
+
   - Create tests/ci-validation.test.ts
   - Test that all CI jobs completed successfully (parse workflow logs)
   - Test that test coverage meets minimum threshold (if configured)
