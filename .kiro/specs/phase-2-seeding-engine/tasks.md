@@ -101,7 +101,9 @@
 - [-] 5. Implement word selection algorithms
 
 
-  - [-] 5.1 Create src/server/services/word-selection.service.ts
+  - [x] 5.1 Create src/server/services/word-selection.service.ts
+
+
 
     - Implement selectSlotCoverage() to ensure 1+ word per semantic slot
     - Implement selectWithDiversity() to enforce 1-per-cluster constraint
@@ -111,7 +113,13 @@
     - Maintain determinism (same PRNG state → same selections)
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7_
 
-  - [ ]* 5.2 Write unit tests for word selection algorithms
+  - [x] 5.2 Write unit tests for word selection algorithms
+
+
+
+
+
+
     - Test selectSlotCoverage() includes at least one word from each slot
     - Test selectSlotCoverage() respects cluster constraints
     - Test selectWithDiversity() enforces 1-per-cluster rule
@@ -121,8 +129,11 @@
     - Test graceful degradation when pool is smaller than target count
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7_
 
-- [ ] 6. Implement SeedingService orchestrator
-  - [ ] 6.1 Create src/server/services/seeding.service.ts
+- [-] 6. Implement SeedingService orchestrator
+
+
+  - [-] 6.1 Create src/server/services/seeding.service.ts
+
     - Implement constructor that validates DAILY_SEED_SECRET environment variable
     - Implement loadPools() to read and parse data/pools.v1.json at startup
     - Implement loadLexicon() to read and parse data/lexicon.map.json at startup
