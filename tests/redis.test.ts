@@ -83,7 +83,7 @@ describe('RedisConnection', () => {
       const client = RedisConnection.getClient();
       const testError = new Error('Redis read timeout');
       
-      vi.spyOn(client, 'set').mockResolvedValue(undefined);
+      vi.spyOn(client, 'set').mockResolvedValue('OK');
       vi.spyOn(client, 'get').mockRejectedValue(testError);
 
       const result = await RedisConnection.healthCheck();
@@ -95,7 +95,7 @@ describe('RedisConnection', () => {
     it('should return false when retrieved value does not match set value', async () => {
       const client = RedisConnection.getClient();
       
-      vi.spyOn(client, 'set').mockResolvedValue(undefined);
+      vi.spyOn(client, 'set').mockResolvedValue('OK');
       vi.spyOn(client, 'get').mockResolvedValue('wrong-value');
 
       const result = await RedisConnection.healthCheck();
@@ -111,7 +111,7 @@ describe('RedisConnection', () => {
       
       const mockSet = vi.spyOn(client, 'set').mockImplementation(async (_key, value) => {
         capturedValue = value as string;
-        return undefined;
+        return 'OK';
       });
       vi.spyOn(client, 'get').mockImplementation(async () => capturedValue);
 

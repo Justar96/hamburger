@@ -34,15 +34,25 @@
     - Test error messages are descriptive
     - _Requirements: 5.3, 5.7_
 
-- [ ] 3. Implement Identity Service for user ID hashing
-  - [ ] 3.1 Create src/server/services/identity.service.ts
+- [-] 3. Implement Identity Service for user ID hashing
+
+
+  - [x] 3.1 Create src/server/services/identity.service.ts
+
+
+
     - Implement constructor that validates USER_ID_PEPPER environment variable exists
     - Implement hashUserId() method using SHA256 with pepper
     - Implement verifyHash() method for testing/debugging
     - Ensure deterministic hashing (same input always produces same output)
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-  - [ ]* 3.2 Write unit tests for Identity Service
+  - [x] 3.2 Write unit tests for Identity Service
+
+
+
+
+
     - Test hashUserId() is deterministic (same input → same output)
     - Test different userIds produce different hashes
     - Test constructor throws error when USER_ID_PEPPER is missing
@@ -51,7 +61,11 @@
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
 - [ ] 4. Implement Data Service for Redis operations
-  - [ ] 4.1 Create src/server/services/data.service.ts with DataService class
+
+
+  - [x] 4.1 Create src/server/services/data.service.ts with DataService class
+
+
     - Implement setSeed() and getSeed() methods for seed data
     - Implement setUserChoices() and getUserChoices() methods using Redis hashes
     - Implement incrementTallies() method using Redis sorted sets with zIncrBy
@@ -60,7 +74,10 @@
     - Add 7-day TTL to all keys on first write
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
 
-  - [ ]* 4.2 Write unit tests for Data Service
+  - [-] 4.2 Write unit tests for Data Service
+
+
+
     - Test setSeed() and getSeed() round-trip with JSON serialization
     - Test setUserChoices() stores data in hash correctly
     - Test getUserChoices() retrieves data correctly
