@@ -12,6 +12,42 @@ import { execSync } from 'child_process';
  * - All required tests and configs present
  */
 
+interface DevvitConfig {
+  $schema: string;
+  name: string;
+  post: {
+    dir: string;
+    entrypoints: {
+      default: {
+        entry: string;
+        height: string;
+      };
+    };
+  };
+  server: {
+    entry: string;
+  };
+  permissions: {
+    redis: boolean;
+    realtime: boolean;
+    media: boolean;
+    http?: { enable: boolean };
+    reddit?: { enable: boolean };
+  };
+  triggers?: {
+    onAppInstall?: string;
+  };
+  dev?: {
+    subreddit: string;
+  };
+}
+
+interface ExecError extends Error {
+  stdout?: string;
+  stderr?: string;
+  status?: number;
+}
+
 const ROOT = process.cwd();
 const PATHS = {
   server: join(ROOT, 'dist', 'server', 'index.js'),
@@ -19,6 +55,7 @@ const PATHS = {
   devvit: join(ROOT, 'devvit.json'),
   ci: join(ROOT, '.github', 'workflows', 'ci.yml'),
   playwright: join(ROOT, 'playwright.config.ts'),
+  vitest: join(ROOT, 'vitest.config.ts'),
   testsDir: join(ROOT, 'tests'),
   e2eDir: join(ROOT, 'tests', 'e2e'),
   integrationDir: join(ROOT, 'tests', 'integration'),
@@ -32,8 +69,16 @@ const REQUIRED_TEST_FILES = [
   'tests/env.test.ts',
 ] as const;
 
-function readDevvitConfig() {
-  return JSON.parse(readFileSync(PATHS.devvit, 'utf-8'));
+function readFileContent(path: string): string {
+  if (!existsSync(path)) {
+    throw new Error(`File not found: ${path}`);
+  }
+  return readFileSync(path, 'utf-8');
+}
+
+function readDevvitConfig(): DevvitConfig {
+  const content = readFileContent(PATHS.devvit);
+  return JSON.parse(content) as DevvitConfig;
 }
 
 function execCommand(command: string, timeoutMs = 60000): string {
@@ -44,50 +89,63 @@ function execCommand(command: string, timeoutMs = 60000): string {
   });
 }
 
-function execCommandSafe(command: string, timeoutMs = 60000): string {
+interface ExecResult {
+  output: string;
+  error?: ExecError;
+}
+
+function execCommandSafe(command: string, timeoutMs = 60000): ExecResult {
   try {
-    return execCommand(command, timeoutMs);
-  } catch (error: any) {
-    return (error.stdout || '') + (error.stderr || '');
+    const output = execCommand(command, timeoutMs);
+    return { output };
+  } catch (error) {
+    const execError = error as ExecError;
+    return {
+      output: (execError.stdout || '') + (execError.stderr || ''),
+      error: execError,
+    };
   }
 }
 
 describe('CI job outputs validation', () => {
   let buildOutput = '';
-  let devvitConfig: any;
+  let devvitConfig: DevvitConfig;
   let ciContent: string;
+  let serverContent: string;
+  let clientContent: string;
 
   beforeAll(() => {
     try {
       buildOutput = execCommand('pnpm run build');
-    } catch (error: any) {
+    } catch (error) {
+      const execError = error as ExecError;
       throw new Error(
-        `Build failed: ${error.message}\nStdout: ${error.stdout}\nStderr: ${error.stderr}`
+        `Build failed: ${execError.message}\nStdout: ${execError.stdout}\nStderr: ${execError.stderr}`
       );
     }
 
     devvitConfig = readDevvitConfig();
-    ciContent = readFileSync(PATHS.ci, 'utf-8');
+    ciContent = readFileContent(PATHS.ci);
+    serverContent = readFileContent(PATHS.server);
+    clientContent = readFileContent(PATHS.client);
   });
 
   describe('Build artifacts validation', () => {
     it('should create server build artifact at dist/server/index.js', () => {
       expect(existsSync(PATHS.server), 'Server artifact missing').toBe(true);
-      const content = readFileSync(PATHS.server, 'utf-8');
-      expect(content.length).toBeGreaterThan(0);
+      expect(serverContent.length, 'Server artifact is empty').toBeGreaterThan(0);
     });
 
     it('should create client artifact at public/index.html', () => {
       expect(existsSync(PATHS.client), 'Client artifact missing').toBe(true);
-      const content = readFileSync(PATHS.client, 'utf-8');
-      expect(content).toContain('<!DOCTYPE html>');
+      expect(clientContent, 'Client artifact missing DOCTYPE').toContain('<!DOCTYPE html>');
     });
 
     it('should have valid devvit.json configuration', () => {
-      expect(existsSync(PATHS.devvit)).toBe(true);
-      expect(devvitConfig).toHaveProperty('name');
-      expect(devvitConfig).toHaveProperty('server');
-      expect(devvitConfig).toHaveProperty('post');
+      expect(existsSync(PATHS.devvit), 'devvit.json missing').toBe(true);
+      expect(devvitConfig.name, 'devvit.json missing name').toBeTruthy();
+      expect(devvitConfig.server, 'devvit.json missing server config').toBeTruthy();
+      expect(devvitConfig.post, 'devvit.json missing post config').toBeTruthy();
     });
 
     it('should have build artifacts matching devvit.json entry points', () => {
@@ -105,14 +163,14 @@ describe('CI job outputs validation', () => {
 
   describe('Build output quality', () => {
     it('should build without errors', () => {
-      expect(buildOutput).toBeDefined();
-      expect(buildOutput.length).toBeGreaterThan(0);
+      expect(buildOutput, 'Build output is empty').toBeDefined();
+      expect(buildOutput.length, 'Build produced no output').toBeGreaterThan(0);
     });
 
     it('should not contain TypeScript compilation errors', () => {
       const lower = buildOutput.toLowerCase();
-      expect(lower).not.toContain('error ts');
-      expect(lower).not.toContain('compilation error');
+      expect(lower, 'Build contains TypeScript errors').not.toContain('error ts');
+      expect(lower, 'Build contains compilation errors').not.toContain('compilation error');
     });
 
     it('should not contain critical warnings', () => {
@@ -123,15 +181,16 @@ describe('CI job outputs validation', () => {
           (line.includes('deprecated') || line.includes('security'))
       );
 
-      if (criticalWarnings.length > 0) {
-        console.warn('Build warnings detected:', criticalWarnings);
-      }
+      expect(
+        criticalWarnings.length,
+        `Build contains ${criticalWarnings.length} critical warnings:\n${criticalWarnings.join('\n')}`
+      ).toBe(0);
     });
 
     it('should not have unhandled promise rejections', () => {
       const lower = buildOutput.toLowerCase();
-      expect(lower).not.toContain('unhandledpromiserejection');
-      expect(lower).not.toContain('unhandled rejection');
+      expect(lower, 'Build contains unhandled promise rejections').not.toContain('unhandledpromiserejection');
+      expect(lower, 'Build contains unhandled rejections').not.toContain('unhandled rejection');
     });
   });
 
@@ -147,33 +206,32 @@ describe('CI job outputs validation', () => {
 
   describe('Test job validation', () => {
     it('should have e2e tests configured', () => {
-      expect(existsSync(PATHS.playwright)).toBe(true);
+      expect(existsSync(PATHS.playwright), 'Playwright config missing').toBe(true);
     });
 
     it('should have test infrastructure', () => {
-      expect(existsSync(PATHS.testsDir)).toBe(true);
+      expect(existsSync(PATHS.testsDir), 'Tests directory missing').toBe(true);
       REQUIRED_TEST_FILES.forEach((file) => {
         expect(existsSync(join(ROOT, file)), `Missing test file: ${file}`).toBe(true);
       });
     });
 
     it('should have vitest configuration', () => {
-      const vitestConfig = join(ROOT, 'vitest.config.ts');
-      expect(existsSync(vitestConfig)).toBe(true);
+      expect(existsSync(PATHS.vitest), 'Vitest config missing').toBe(true);
     });
   });
 
   describe('Devvit validation', () => {
     it('should pass devvit validate command', () => {
-      expect(() => execCommand('pnpm run validate')).not.toThrow();
+      expect(() => execCommand('pnpm run validate'), 'Devvit validation failed').not.toThrow();
     });
 
     it('should have valid devvit.json schema', () => {
-      expect(devvitConfig.$schema).toContain('developers.reddit.com');
-      expect(devvitConfig).toHaveProperty('name');
-      expect(devvitConfig).toHaveProperty('server');
-      expect(devvitConfig).toHaveProperty('post');
-      expect(devvitConfig).toHaveProperty('permissions');
+      expect(devvitConfig.$schema, 'Invalid schema URL').toContain('developers.reddit.com');
+      expect(devvitConfig.name, 'Missing app name').toBeTruthy();
+      expect(devvitConfig.server, 'Missing server config').toBeTruthy();
+      expect(devvitConfig.post, 'Missing post config').toBeTruthy();
+      expect(devvitConfig.permissions, 'Missing permissions config').toBeTruthy();
     });
   });
 
@@ -211,39 +269,40 @@ describe('CI job outputs validation', () => {
       });
     });
 
-    it('should use npm caching for faster builds', () => {
-      expect(ciContent).toContain("cache: 'npm'");
+    it('should use pnpm caching for faster builds', () => {
+      expect(ciContent).toContain("cache: 'pnpm'");
     });
   });
 
   describe('Build artifact integrity', () => {
     it('should have server bundle with required endpoints', () => {
-      const content = readFileSync(PATHS.server, 'utf-8');
-      expect(content).toContain('/api/health');
-      expect(content).toContain('/internal/install');
+      expect(serverContent, 'Server missing /api/health endpoint').toContain('/api/health');
+      expect(serverContent, 'Server missing /internal/install endpoint').toContain('/internal/install');
     });
 
     it('should have client with health check integration', () => {
-      const content = readFileSync(PATHS.client, 'utf-8');
-      expect(content).toContain('/api/health');
-      expect(content).toContain('fetch');
+      expect(clientContent, 'Client missing /api/health call').toContain('/api/health');
+      expect(clientContent, 'Client missing fetch implementation').toContain('fetch');
     });
 
     it('should have readable build artifacts', () => {
-      expect(() => readFileSync(PATHS.server, 'utf-8')).not.toThrow();
-      expect(() => readFileSync(PATHS.client, 'utf-8')).not.toThrow();
+      expect(serverContent.length, 'Server artifact is empty').toBeGreaterThan(0);
+      expect(clientContent.length, 'Client artifact is empty').toBeGreaterThan(0);
     });
   });
 
   describe('Dependency health', () => {
     it('should not have critical deprecation warnings', () => {
-      const output = execCommandSafe('pnpm list');
-      const lines = output.toLowerCase().split('\n');
+      const result = execCommandSafe('pnpm list');
+      const lines = result.output.toLowerCase().split('\n');
       const criticalDeprecations = lines.filter(
         (line) => line.includes('deprecated') && line.includes('critical')
       );
 
-      expect(criticalDeprecations.length).toBe(0);
+      expect(
+        criticalDeprecations.length,
+        `Found ${criticalDeprecations.length} critical deprecations:\n${criticalDeprecations.join('\n')}`
+      ).toBe(0);
     });
   });
 });

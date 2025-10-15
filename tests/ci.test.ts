@@ -87,14 +87,14 @@ describe('GitHub Actions CI pipeline', () => {
     it('should install dependencies', () => {
       const steps = workflow.jobs.lint.steps;
       const installStep = steps.find((s: any) => 
-        s.name?.includes('Install') || s.run?.includes('npm ci')
+        s.name?.includes('Install') || s.run?.includes('pnpm install')
       );
       expect(installStep).toBeDefined();
     });
 
     it('should run lint command', () => {
       const steps = workflow.jobs.lint.steps;
-      const lintStep = steps.find((s: any) => s.run?.includes('npm run lint'));
+      const lintStep = steps.find((s: any) => s.run?.includes('pnpm run lint'));
       expect(lintStep).toBeDefined();
     });
 
@@ -115,7 +115,7 @@ describe('GitHub Actions CI pipeline', () => {
     it('should setup Node.js and install dependencies', () => {
       const steps = workflow.jobs['test-unit'].steps;
       const nodeStep = steps.find((s: any) => s.uses?.includes('setup-node'));
-      const installStep = steps.find((s: any) => s.run?.includes('npm ci'));
+      const installStep = steps.find((s: any) => s.run?.includes('pnpm install'));
       
       expect(nodeStep).toBeDefined();
       expect(installStep).toBeDefined();
@@ -123,7 +123,7 @@ describe('GitHub Actions CI pipeline', () => {
 
     it('should run unit tests', () => {
       const steps = workflow.jobs['test-unit'].steps;
-      const testStep = steps.find((s: any) => s.run?.includes('npm run test'));
+      const testStep = steps.find((s: any) => s.run?.includes('pnpm run test'));
       expect(testStep).toBeDefined();
     });
   });
@@ -141,7 +141,7 @@ describe('GitHub Actions CI pipeline', () => {
 
     it('should use Upstash Redis URL from secrets', () => {
       const steps = workflow.jobs['test-integration'].steps;
-      const testStep = steps.find((s: any) => s.run?.includes('npm run test'));
+      const testStep = steps.find((s: any) => s.run?.includes('pnpm run test'));
       
       expect(testStep).toBeDefined();
       expect(testStep.env).toBeDefined();
@@ -150,7 +150,7 @@ describe('GitHub Actions CI pipeline', () => {
 
     it('should run integration tests with Redis environment', () => {
       const steps = workflow.jobs['test-integration'].steps;
-      const testStep = steps.find((s: any) => s.run?.includes('npm run test'));
+      const testStep = steps.find((s: any) => s.run?.includes('pnpm run test'));
       
       expect(testStep).toBeDefined();
       expect(testStep.env).toBeDefined();
@@ -174,7 +174,7 @@ describe('GitHub Actions CI pipeline', () => {
 
     it('should run e2e tests', () => {
       const steps = workflow.jobs['test-e2e'].steps;
-      const testStep = steps.find((s: any) => s.run?.includes('npm run test:e2e'));
+      const testStep = steps.find((s: any) => s.run?.includes('pnpm run test:e2e'));
       expect(testStep).toBeDefined();
     });
 
@@ -195,7 +195,7 @@ describe('GitHub Actions CI pipeline', () => {
     it('should setup Node.js and install dependencies', () => {
       const steps = workflow.jobs.build.steps;
       const nodeStep = steps.find((s: any) => s.uses?.includes('setup-node'));
-      const installStep = steps.find((s: any) => s.run?.includes('npm ci'));
+      const installStep = steps.find((s: any) => s.run?.includes('pnpm install'));
       
       expect(nodeStep).toBeDefined();
       expect(installStep).toBeDefined();
@@ -203,14 +203,14 @@ describe('GitHub Actions CI pipeline', () => {
 
     it('should run build command', () => {
       const steps = workflow.jobs.build.steps;
-      const buildStep = steps.find((s: any) => s.run?.includes('npm run build'));
+      const buildStep = steps.find((s: any) => s.run?.includes('pnpm run build'));
       expect(buildStep).toBeDefined();
     });
 
     it('should run devvit validate', () => {
       const steps = workflow.jobs.build.steps;
       const validateStep = steps.find((s: any) => 
-        s.run?.includes('npm run validate')
+        s.run?.includes('pnpm run validate')
       );
       expect(validateStep).toBeDefined();
     });
@@ -257,7 +257,7 @@ describe('GitHub Actions CI pipeline', () => {
   });
 
   describe('Caching configuration', () => {
-    it('should enable npm caching in all jobs', () => {
+    it('should enable pnpm caching in all jobs', () => {
       const jobs = workflow.jobs;
       
       Object.keys(jobs).forEach(jobName => {
@@ -265,7 +265,7 @@ describe('GitHub Actions CI pipeline', () => {
         const nodeStep = job.steps?.find((s: any) => s.uses?.includes('setup-node'));
         
         if (nodeStep) {
-          expect(nodeStep.with.cache).toBe('npm');
+          expect(nodeStep.with.cache).toBe('pnpm');
         }
       });
     });
