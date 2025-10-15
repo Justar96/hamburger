@@ -1,0 +1,156 @@
+{
+  "version": "v1",
+  "themes": {
+    "nocturnal-cities": {
+      "name": "Nocturnal Cities",
+      "slots": {
+        "subject": {
+          "words": [
+            "neon",
+            "skyline",
+            "alley",
+            "street",
+            "tower",
+            "bridge",
+            "subway",
+            "rooftop",
+            "window",
+            "billboard",
+            "lamppost",
+            "sidewalk"
+          ],
+          "clusters": [
+            "urban-light",
+            "urban-structure",
+            "urban-passage",
+            "urban-passage",
+            "urban-structure",
+            "urban-structure",
+            "urban-passage",
+            "urban-structure",
+            "urban-opening",
+            "urban-light",
+            "urban-light",
+            "urban-passage"
+          ]
+        },
+        "action": {
+          "words": [
+            "glowing",
+            "flickering",
+            "reflecting",
+            "pulsing",
+            "shimmering",
+            "fading",
+            "illuminating",
+            "casting",
+            "dancing",
+            "streaming"
+          ],
+          "clusters": [
+            "light-steady",
+            "light-unsteady",
+            "light-mirror",
+            "light-rhythm",
+            "light-steady",
+            "light-diminish",
+            "light-steady",
+            "light-project",
+            "light-movement",
+            "light-movement"
+          ]
+        },
+        "setting": {
+          "words": [
+            "rain",
+            "fog",
+            "night",
+            "dusk",
+            "midnight",
+            "dawn",
+            "drizzle",
+            "mist",
+            "twilight",
+            "storm",
+            "darkness",
+            "evening"
+          ],
+          "clusters": [
+            "weather-wet",
+            "weather-obscure",
+            "time-dark",
+            "time-transition",
+            "time-dark",
+            "time-transition",
+            "weather-wet",
+            "weather-obscure",
+            "time-transition",
+            "weather-wet",
+            "time-dark",
+            "time-dark"
+          ]
+        },
+        "mood": {
+          "words": [
+            "mysterious",
+            "lonely",
+            "vibrant",
+            "quiet",
+            "melancholic",
+            "electric",
+            "serene",
+            "restless",
+            "haunting",
+            "alive",
+            "somber",
+            "dreamy"
+          ],
+          "clusters": [
+            "emotion-enigmatic",
+            "emotion-isolated",
+            "emotion-energetic",
+            "emotion-calm",
+            "emotion-sad",
+            "emotion-energetic",
+            "emotion-calm",
+            "emotion-anxious",
+            "emotion-enigmatic",
+            "emotion-energetic",
+            "emotion-sad",
+            "emotion-ethereal"
+          ]
+        },
+        "modifier": {
+          "words": [
+            "neon-lit",
+            "shadowy",
+            "wet",
+            "empty",
+            "crowded",
+            "distant",
+            "blurred",
+            "sharp",
+            "hazy",
+            "silent",
+            "bustling",
+            "abandoned"
+          ],
+          "clusters": [
+            "descriptor-light",
+            "descriptor-dark",
+            "descriptor-texture",
+            "descriptor-population",
+            "descriptor-population",
+            "descriptor-space",
+            "descriptor-clarity",
+            "descriptor-clarity",
+            "descriptor-clarity",
+            "descriptor-sound",
+            "descriptor-sound",
+            "descriptor-population"
+          ]
+        }
+      }
+    }
+  }
+}

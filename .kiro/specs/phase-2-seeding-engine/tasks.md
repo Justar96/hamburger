@@ -1,27 +1,46 @@
 # Implementation Plan
 
-- [ ] 1. Create seeding type definitions and data structures
+- [x] 1. Create seeding type definitions and data structures
+
+
+
   - Create src/server/types/seeding.types.ts with WordPools, Theme, Slot, LexiconMap, and WordMetadata interfaces
   - Ensure all fields are properly typed with no 'any' types
   - Add JSDoc comments explaining each interface
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 2. Create word pool and lexicon data files
-  - [ ] 2.1 Create data/pools.v1.json with initial theme
+- [x] 2. Create word pool and lexicon data files
+
+
+
+
+
+
+  - [x] 2.1 Create data/pools.v1.json with initial theme
+
     - Create "nocturnal-cities" theme with 5 semantic slots (subject, action, setting, mood, modifier)
     - Include at least 50 safe, curated words total across all slots
     - Add cluster tags for each word to enable diversity enforcement
     - Ensure JSON is valid and follows the schema from design.md
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-  - [ ] 2.2 Create data/lexicon.map.json with word metadata
+
+  - [x] 2.2 Create data/lexicon.map.json with word metadata
+
     - Map each word from pools.v1.json to its canonical form, slot, and cluster
     - Ensure all words in pools have corresponding lexicon entries
     - Validate JSON structure matches LexiconMap interface
     - _Requirements: 3.2, 3.5_
 
-- [ ] 3. Implement CryptoService for seed generation
-  - [ ] 3.1 Create src/server/services/crypto.service.ts
+- [x] 3. Implement CryptoService for seed generation
+
+
+
+
+
+
+  - [x] 3.1 Create src/server/services/crypto.service.ts
+
     - Implement constructor that validates secret parameter
     - Implement generateDailySeed() using HMAC-SHA256 with date string
     - Implement generateUserSeed() using HMAC-SHA256 with dailySeed and userId
@@ -29,7 +48,13 @@
     - Use Node's built-in crypto module (no external dependencies)
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.7_
 
-  - [ ]* 3.2 Write unit tests for CryptoService
+  - [x] 3.2 Write unit tests for CryptoService
+
+
+
+
+
+
     - Test generateDailySeed() is deterministic (same date → same seed)
     - Test generateUserSeed() is deterministic (same user+date → same seed)
     - Test different dates produce different daily seeds
@@ -39,8 +64,13 @@
     - Test seed output is 64-character hex string
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.7_
 
-- [ ] 4. Implement PRNG (SplitMix64 + Xoroshiro128+)
-  - [ ] 4.1 Create src/server/services/prng.service.ts
+- [-] 4. Implement PRNG (SplitMix64 + Xoroshiro128+)
+
+
+  - [x] 4.1 Create src/server/services/prng.service.ts
+
+
+
     - Implement constructor that initializes state using SplitMix64
     - Implement splitMix64Init() private method for state initialization
     - Implement next() private method using Xoroshiro128+ algorithm
@@ -52,7 +82,13 @@
     - Use BigInt for all 64-bit operations to avoid precision loss
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-  - [ ]* 4.2 Write unit tests for PRNG
+  - [x] 4.2 Write unit tests for PRNG
+
+
+
+
+
+
     - Test same seed produces identical sequence of random numbers
     - Test nextUint() returns values in valid range (0 to 2^32-1)
     - Test nextFloat() returns values in [0, 1) range
@@ -62,8 +98,11 @@
     - Test statistical distribution (chi-square test for nextUint)
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-- [ ] 5. Implement word selection algorithms
-  - [ ] 5.1 Create src/server/services/word-selection.service.ts
+- [-] 5. Implement word selection algorithms
+
+
+  - [-] 5.1 Create src/server/services/word-selection.service.ts
+
     - Implement selectSlotCoverage() to ensure 1+ word per semantic slot
     - Implement selectWithDiversity() to enforce 1-per-cluster constraint
     - Implement selectWildcards() to add 2-3 random wildcard words

@@ -1,0 +1,295 @@
+{
+  "version": "v1",
+  "mappings": {
+    "neon": {
+      "canonical": "neon",
+      "slot": "subject",
+      "cluster": "urban-light"
+    },
+    "skyline": {
+      "canonical": "skyline",
+      "slot": "subject",
+      "cluster": "urban-structure"
+    },
+    "alley": {
+      "canonical": "alley",
+      "slot": "subject",
+      "cluster": "urban-passage"
+    },
+    "street": {
+      "canonical": "street",
+      "slot": "subject",
+      "cluster": "urban-passage"
+    },
+    "tower": {
+      "canonical": "tower",
+      "slot": "subject",
+      "cluster": "urban-structure"
+    },
+    "bridge": {
+      "canonical": "bridge",
+      "slot": "subject",
+      "cluster": "urban-structure"
+    },
+    "subway": {
+      "canonical": "subway",
+      "slot": "subject",
+      "cluster": "urban-passage"
+    },
+    "rooftop": {
+      "canonical": "rooftop",
+      "slot": "subject",
+      "cluster": "urban-structure"
+    },
+    "window": {
+      "canonical": "window",
+      "slot": "subject",
+      "cluster": "urban-opening"
+    },
+    "billboard": {
+      "canonical": "billboard",
+      "slot": "subject",
+      "cluster": "urban-light"
+    },
+    "lamppost": {
+      "canonical": "lamppost",
+      "slot": "subject",
+      "cluster": "urban-light"
+    },
+    "sidewalk": {
+      "canonical": "sidewalk",
+      "slot": "subject",
+      "cluster": "urban-passage"
+    },
+    "glowing": {
+      "canonical": "glowing",
+      "slot": "action",
+      "cluster": "light-steady"
+    },
+    "flickering": {
+      "canonical": "flickering",
+      "slot": "action",
+      "cluster": "light-unsteady"
+    },
+    "reflecting": {
+      "canonical": "reflecting",
+      "slot": "action",
+      "cluster": "light-mirror"
+    },
+    "pulsing": {
+      "canonical": "pulsing",
+      "slot": "action",
+      "cluster": "light-rhythm"
+    },
+    "shimmering": {
+      "canonical": "shimmering",
+      "slot": "action",
+      "cluster": "light-steady"
+    },
+    "fading": {
+      "canonical": "fading",
+      "slot": "action",
+      "cluster": "light-diminish"
+    },
+    "illuminating": {
+      "canonical": "illuminating",
+      "slot": "action",
+      "cluster": "light-steady"
+    },
+    "casting": {
+      "canonical": "casting",
+      "slot": "action",
+      "cluster": "light-project"
+    },
+    "dancing": {
+      "canonical": "dancing",
+      "slot": "action",
+      "cluster": "light-movement"
+    },
+    "streaming": {
+      "canonical": "streaming",
+      "slot": "action",
+      "cluster": "light-movement"
+    },
+    "rain": {
+      "canonical": "rain",
+      "slot": "setting",
+      "cluster": "weather-wet"
+    },
+    "fog": {
+      "canonical": "fog",
+      "slot": "setting",
+      "cluster": "weather-obscure"
+    },
+    "night": {
+      "canonical": "night",
+      "slot": "setting",
+      "cluster": "time-dark"
+    },
+    "dusk": {
+      "canonical": "dusk",
+      "slot": "setting",
+      "cluster": "time-transition"
+    },
+    "midnight": {
+      "canonical": "midnight",
+      "slot": "setting",
+      "cluster": "time-dark"
+    },
+    "dawn": {
+      "canonical": "dawn",
+      "slot": "setting",
+      "cluster": "time-transition"
+    },
+    "drizzle": {
+      "canonical": "drizzle",
+      "slot": "setting",
+      "cluster": "weather-wet"
+    },
+    "mist": {
+      "canonical": "mist",
+      "slot": "setting",
+      "cluster": "weather-obscure"
+    },
+    "twilight": {
+      "canonical": "twilight",
+      "slot": "setting",
+      "cluster": "time-transition"
+    },
+    "storm": {
+      "canonical": "storm",
+      "slot": "setting",
+      "cluster": "weather-wet"
+    },
+    "darkness": {
+      "canonical": "darkness",
+      "slot": "setting",
+      "cluster": "time-dark"
+    },
+    "evening": {
+      "canonical": "evening",
+      "slot": "setting",
+      "cluster": "time-dark"
+    },
+    "mysterious": {
+      "canonical": "mysterious",
+      "slot": "mood",
+      "cluster": "emotion-enigmatic"
+    },
+    "lonely": {
+      "canonical": "lonely",
+      "slot": "mood",
+      "cluster": "emotion-isolated"
+    },
+    "vibrant": {
+      "canonical": "vibrant",
+      "slot": "mood",
+      "cluster": "emotion-energetic"
+    },
+    "quiet": {
+      "canonical": "quiet",
+      "slot": "mood",
+      "cluster": "emotion-calm"
+    },
+    "melancholic": {
+      "canonical": "melancholic",
+      "slot": "mood",
+      "cluster": "emotion-sad"
+    },
+    "electric": {
+      "canonical": "electric",
+      "slot": "mood",
+      "cluster": "emotion-energetic"
+    },
+    "serene": {
+      "canonical": "serene",
+      "slot": "mood",
+      "cluster": "emotion-calm"
+    },
+    "restless": {
+      "canonical": "restless",
+      "slot": "mood",
+      "cluster": "emotion-anxious"
+    },
+    "haunting": {
+      "canonical": "haunting",
+      "slot": "mood",
+      "cluster": "emotion-enigmatic"
+    },
+    "alive": {
+      "canonical": "alive",
+      "slot": "mood",
+      "cluster": "emotion-energetic"
+    },
+    "somber": {
+      "canonical": "somber",
+      "slot": "mood",
+      "cluster": "emotion-sad"
+    },
+    "dreamy": {
+      "canonical": "dreamy",
+      "slot": "mood",
+      "cluster": "emotion-ethereal"
+    },
+    "neon-lit": {
+      "canonical": "neon-lit",
+      "slot": "modifier",
+      "cluster": "descriptor-light"
+    },
+    "shadowy": {
+      "canonical": "shadowy",
+      "slot": "modifier",
+      "cluster": "descriptor-dark"
+    },
+    "wet": {
+      "canonical": "wet",
+      "slot": "modifier",
+      "cluster": "descriptor-texture"
+    },
+    "empty": {
+      "canonical": "empty",
+      "slot": "modifier",
+      "cluster": "descriptor-population"
+    },
+    "crowded": {
+      "canonical": "crowded",
+      "slot": "modifier",
+      "cluster": "descriptor-population"
+    },
+    "distant": {
+      "canonical": "distant",
+      "slot": "modifier",
+      "cluster": "descriptor-space"
+    },
+    "blurred": {
+      "canonical": "blurred",
+      "slot": "modifier",
+      "cluster": "descriptor-clarity"
+    },
+    "sharp": {
+      "canonical": "sharp",
+      "slot": "modifier",
+      "cluster": "descriptor-clarity"
+    },
+    "hazy": {
+      "canonical": "hazy",
+      "slot": "modifier",
+      "cluster": "descriptor-clarity"
+    },
+    "silent": {
+      "canonical": "silent",
+      "slot": "modifier",
+      "cluster": "descriptor-sound"
+    },
+    "bustling": {
+      "canonical": "bustling",
+      "slot": "modifier",
+      "cluster": "descriptor-sound"
+    },
+    "abandoned": {
+      "canonical": "abandoned",
+      "slot": "modifier",
+      "cluster": "descriptor-population"
+    }
+  }
+}
