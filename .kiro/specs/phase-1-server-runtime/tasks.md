@@ -34,7 +34,7 @@
     - Test error messages are descriptive
     - _Requirements: 5.3, 5.7_
 
-- [-] 3. Implement Identity Service for user ID hashing
+- [x] 3. Implement Identity Service for user ID hashing
 
 
   - [x] 3.1 Create src/server/services/identity.service.ts
@@ -60,7 +60,7 @@
     - Test verifyHash() correctly validates hashes
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 4. Implement Data Service for Redis operations
+- [x] 4. Implement Data Service for Redis operations
 
 
   - [x] 4.1 Create src/server/services/data.service.ts with DataService class
@@ -74,7 +74,10 @@
     - Add 7-day TTL to all keys on first write
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
 
-  - [-] 4.2 Write unit tests for Data Service
+  - [x] 4.2 Write unit tests for Data Service
+
+
+
 
 
 
@@ -87,8 +90,13 @@
     - Test TTL is set on first write
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
 
-- [ ] 5. Implement PostData Service for client data generation
-  - [ ] 5.1 Create src/server/services/postdata.service.ts with PostDataService class
+- [x] 5. Implement PostData Service for client data generation
+
+
+  - [x] 5.1 Create src/server/services/postdata.service.ts with PostDataService class
+
+
+
     - Implement generate() static method that creates PostData within 2KB limit
     - Implement getSize() private method that calculates UTF-8 byte size
     - Implement calculateTimeLeft() private method for Bangkok timezone (UTC+7)
@@ -96,7 +104,13 @@
     - Add iterative truncation of teaserTop array to fit 2KB limit
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
 
-  - [ ]* 5.2 Write unit tests for PostData Service
+  - [x] 5.2 Write unit tests for PostData Service
+
+
+
+
+
+
     - Test generate() creates valid PostData structure
     - Test getSize() correctly measures UTF-8 byte size
     - Test calculateTimeLeft() returns correct seconds until 23:00 Bangkok
@@ -106,8 +120,13 @@
     - Test seedPreview is first 8 characters of seedHex
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
 
-- [ ] 6. Implement Telemetry Service for performance tracking
-  - [ ] 6.1 Create src/server/services/telemetry.service.ts with TelemetryService class
+- [x] 6. Implement Telemetry Service for performance tracking
+
+
+  - [x] 6.1 Create src/server/services/telemetry.service.ts with TelemetryService class
+
+
+
     - Implement incrementCounter() method using Redis hIncrBy
     - Implement recordLatency() method using Redis sorted set with timestamp-based trimming
     - Implement getTelemetry() method that retrieves counters and p95 samples
@@ -116,7 +135,13 @@
     - Implement automatic trimming to keep max 1000 p95 samples
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
 
-  - [ ]* 6.2 Write unit tests for Telemetry Service
+  - [x] 6.2 Write unit tests for Telemetry Service
+
+
+
+
+
+
     - Test incrementCounter() increments correctly
     - Test recordLatency() stores samples in sorted set
     - Test automatic trimming keeps only most recent 1000 samples
@@ -127,6 +152,8 @@
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
 
 - [ ] 7. Add environment variable validation at server startup
+
+
   - Update src/server/index.ts to validate USER_ID_PEPPER exists
   - Instantiate IdentityService at startup to trigger validation
   - Add process.exit(1) if validation fails
