@@ -34,7 +34,20 @@ Copy `.env.example` to `.env` and configure:
 cp .env.example .env
 ```
 
-See `.env.example` for all available configuration options.
+#### Required Environment Variables
+
+- **`USER_ID_PEPPER`** - Secret value for hashing user IDs (minimum 32 characters)
+  - Generate using: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+  - Must remain consistent across all deployments
+  - Never commit this value to version control
+
+#### Optional Environment Variables
+
+- **`UPSTASH_REDIS_URL`** - Redis connection URL (Devvit provides this automatically in production)
+- **`NODE_ENV`** - Environment mode (development/production)
+- **`PORT`** - Server port (default: 3000)
+
+See `.env.example` for all available configuration options and detailed documentation.
 
 ### Local Development
 
