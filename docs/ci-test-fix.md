@@ -15,7 +15,7 @@ The CI workflow had a sequencing issue:
 - Since jobs run independently in parallel, the compiled files weren't available during testing
 
 ## Solution
-Added a build step to the `test-unit` job before running tests:
+Added a build step to both `test-unit` and `test-integration` jobs before running tests:
 
 ```yaml
 - name: Build project
@@ -24,6 +24,8 @@ Added a build step to the `test-unit` job before running tests:
 - name: Run unit tests
   run: pnpm run test
 ```
+
+Both jobs run `pnpm run test` which includes the validation tests, so both need the build artifacts.
 
 This ensures that:
 1. Dependencies are installed
@@ -37,4 +39,4 @@ Ran `pnpm run validate` locally - all 16 tests pass:
 - All other devvit.json validations pass
 
 ## Files Modified
-- `.github/workflows/ci.yml` - Added build step to test-unit job
+- `.github/workflows/ci.yml` - Added build step to test-unit and test-integration jobs
