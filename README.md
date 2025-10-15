@@ -49,17 +49,32 @@ npm run dev
 ## Testing
 
 ```bash
-# Run unit tests
+# Run unit tests (288 tests)
 npm test
+
+# Run integration tests (requires playtest environment)
+npm run test:integration
 
 # Run e2e tests
 npm run test:e2e
 
-# Run all tests (unit + e2e)
+# Run all tests (unit + integration + e2e)
 npm run test:all
 
 # Run tests in watch mode (for development)
 npm run test:watch
+```
+
+**Note**: Integration tests require the Devvit runtime. See [Testing Guide](docs/TESTING.md) for details.
+
+### Manual Integration Testing
+
+```bash
+# Start Devvit playtest environment
+npm run dev
+
+# Follow the manual testing guide
+# See: tests/manual-integration-test.md
 ```
 
 ## Building
@@ -148,7 +163,10 @@ choice-chorus/
 
 ## Documentation
 
+- [Testing Guide](docs/TESTING.md) - Comprehensive testing documentation
 - [CI/CD Setup Guide](docs/ci-setup.md) - Detailed CI configuration instructions
+- [Integration Testing Summary](tests/integration/SUMMARY.md) - Integration testing approach
+- [Manual Testing Guide](tests/manual-integration-test.md) - Step-by-step testing instructions
 - [Submission](SUBMISSION.md) - Hackathon submission details
 
 ## License

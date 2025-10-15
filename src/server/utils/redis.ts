@@ -4,6 +4,9 @@
  * Provides health check utilities for Redis connectivity.
  * In Devvit Web, redis is provided automatically via the @devvit/web/server package
  * and handles connection management internally.
+ *
+ * Redis Key Schema:
+ * - health:check → Temporary test key (60s TTL) used for connectivity validation
  */
 
 import { redis } from '@devvit/web/server';

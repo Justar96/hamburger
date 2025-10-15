@@ -78,7 +78,7 @@ export class PostDataService {
     const seedPreview = seedHex.substring(0, 8);
 
     // Start with all top words
-    let teaserTop = topWords.map((t) => t.word);
+    let teaserTop = topWords.map(t => t.word);
 
     // Build initial PostData
     let postData: PostData = {

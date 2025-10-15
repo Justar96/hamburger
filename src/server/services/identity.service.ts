@@ -112,7 +112,11 @@ export class IdentityService {
    * ```
    */
   verifyHash(userId: string, hash: string): boolean {
-    if (!hash || typeof hash !== 'string' || hash.length !== EXPECTED_HASH_LENGTH) {
+    if (
+      !hash ||
+      typeof hash !== 'string' ||
+      hash.length !== EXPECTED_HASH_LENGTH
+    ) {
       return false;
     }
 
