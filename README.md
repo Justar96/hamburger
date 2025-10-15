@@ -41,6 +41,13 @@ cp .env.example .env
   - Must remain consistent across all deployments
   - Never commit this value to version control
 
+- **`DAILY_SEED_SECRET`** - Secret key for deterministic seed generation (64 characters recommended)
+  - Generate using: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+  - Used by the seeding engine to generate daily and user-specific seeds
+  - Must remain consistent across all deployments for deterministic word generation
+  - Critical for auditability - changing this invalidates all historical seeds
+  - Never commit this value to version control
+
 #### Optional Environment Variables
 
 - **`UPSTASH_REDIS_URL`** - Redis connection URL (Devvit provides this automatically in production)

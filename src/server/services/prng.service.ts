@@ -90,19 +90,22 @@ export class PRNG {
    * @private
    */
   private splitMix64Init(seed: bigint): [bigint, bigint] {
-    // First state value
+    // First state value using SplitMix64 algorithm
     let z = seed;
-    z = (z ^ (z >> BIGINT_30)) * SPLITMIX64_CONST_1;
-    z = (z ^ (z >> BIGINT_27)) * SPLITMIX64_CONST_2;
-    const s0 = z ^ (z >> BIGINT_31);
+    // XOR with right-shifted value, then multiply by large prime
+    // This creates avalanche effect: small input changes cause large output changes
+    z = (z ^ (z >> BIGINT_30)) * SPLITMIX64_CONST_1; // 0xbf58476d1ce4e5b9
+    z = (z ^ (z >> BIGINT_27)) * SPLITMIX64_CONST_2; // 0x94d049bb133111eb
+    const s0 = z ^ (z >> BIGINT_31); // Final XOR for bit mixing
 
-    // Second state value (increment seed first)
-    z = s0 + 1n;
+    // Second state value (increment seed first to ensure different input)
+    z = s0 + 1n; // Increment to get different starting point
+    // Apply same SplitMix64 transformation to get second independent state
     z = (z ^ (z >> BIGINT_30)) * SPLITMIX64_CONST_1;
     z = (z ^ (z >> BIGINT_27)) * SPLITMIX64_CONST_2;
     const s1 = z ^ (z >> BIGINT_31);
 
-    // Mask to 64 bits to prevent overflow
+    // Mask to 64 bits to prevent BigInt overflow beyond our target range
     return [s0 & UINT64_MAX, s1 & UINT64_MAX];
   }
 
@@ -118,10 +121,21 @@ export class PRNG {
   private next(): bigint {
     const s0 = this.state0;
     let s1 = this.state1;
+    // Xoroshiro128+ output: sum of the two states (+ operation)
+    // Mask to 64 bits to prevent overflow
     const result = (s0 + s1) & UINT64_MAX;
 
-    s1 ^= s0;
-    this.state0 = (this.rotl(s0, XOROSHIRO_ROTL_A) ^ s1 ^ (s1 << XOROSHIRO_SHIFT)) & UINT64_MAX;
+    // Update state using Xoroshiro128+ algorithm
+    s1 ^= s0; // XOR s1 with s0 for bit mixing
+
+    // Update state0: rotate s0 left by 24, XOR with s1, XOR with s1 shifted left by 16
+    // This creates complex bit dependencies between states
+    this.state0 =
+      (this.rotl(s0, XOROSHIRO_ROTL_A) ^ s1 ^ (s1 << XOROSHIRO_SHIFT)) &
+      UINT64_MAX;
+
+    // Update state1: rotate s1 left by 37 bits
+    // Different rotation amount ensures state evolution independence
     this.state1 = this.rotl(s1, XOROSHIRO_ROTL_B);
 
     return result;
@@ -138,6 +152,10 @@ export class PRNG {
    * @private
    */
   private rotl(x: bigint, k: bigint): bigint {
+    // Left rotation: (x << k) | (x >> (64 - k))
+    // Left shift k positions, OR with right shift (64-k) positions
+    // This moves bits that would overflow back to the right side
+    // Example: rotl(0b11000001, 2) = 0b00000111 (bits wrap around)
     return ((x << k) | (x >> (BIGINT_64 - k))) & UINT64_MAX;
   }
 

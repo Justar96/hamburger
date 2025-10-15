@@ -21,7 +21,6 @@ import crypto from 'crypto';
 
 const HMAC_ALGORITHM = 'sha256';
 const SEED_ENCODING = 'hex';
-const EXPECTED_SEED_LENGTH = 64;
 const SEED_TO_INT64_CHARS = 16;
 
 /**

@@ -49,6 +49,7 @@
   "dependencies": {
     "@devvit/server": "^0.12.1",
     "@devvit/web": "^0.12.1",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0"
   }
 }

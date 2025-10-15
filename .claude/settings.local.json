@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm list)",
+      "Bash(cat:*)",
+      "Bash(test:*)",
+      "Bash(if [ -f .env ])",
+      "Bash(then grep -q \"USER_ID_PEPPER\" .env)",
+      "Bash(else echo \"✗ .env file missing\")",
+      "Bash(fi)",
+      "Bash(pnpm run dev:server:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(powershell:*)",
+      "Bash(pnpm run test:integration:*)",
+      "Bash(pnpm vitest run:*)",
+      "Bash(pnpm list:*)",
+      "Bash(pnpm run build)",
+      "Bash(git mv:*)",
+      "Bash(pnpm test)",
+      "Bash(pnpm run lint)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -129,10 +129,13 @@
     - Test graceful degradation when pool is smaller than target count
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7_
 
-- [-] 6. Implement SeedingService orchestrator
+- [x] 6. Implement SeedingService orchestrator
 
 
-  - [-] 6.1 Create src/server/services/seeding.service.ts
+
+
+  - [x] 6.1 Create src/server/services/seeding.service.ts
+
 
     - Implement constructor that validates DAILY_SEED_SECRET environment variable
     - Implement loadPools() to read and parse data/pools.v1.json at startup
@@ -145,7 +148,13 @@
     - Cache pools and lexicon in memory (load once at startup)
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 3.6, 3.7, 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
 
-  - [ ]* 6.2 Write unit tests for SeedingService
+  - [x] 6.2 Write unit tests for SeedingService
+
+
+
+
+
+
     - Test constructor throws error when DAILY_SEED_SECRET is missing
     - Test constructor throws error when pool files are missing
     - Test generateDailySeed() creates valid SeedData structure
@@ -159,21 +168,35 @@
     - Test selectDailyTheme() is deterministic
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 10.1, 10.2, 10.3, 10.4, 10.5_
 
-- [ ] 7. Add DAILY_SEED_SECRET to environment configuration
+- [x] 7. Add DAILY_SEED_SECRET to environment configuration
+
+
+
+
   - Add DAILY_SEED_SECRET to .env.example with documentation
   - Generate a secure random 64-character hex string for local .env
   - Document that this value must be consistent across deployments
   - Add validation at server startup (fail fast if missing)
   - _Requirements: 1.5, 1.6, 10.1_
 
-- [ ] 8. Integrate SeedingService with server startup
+- [x] 8. Integrate SeedingService with server startup
+
+
+
+
+
   - Import SeedingService in src/server/index.ts
   - Instantiate SeedingService at startup (triggers validation)
   - Add error handling for startup failures (missing env vars, pool files)
   - Log successful initialization with pools version
   - _Requirements: 3.6, 10.1, 10.2_
 
-- [ ] 9. Add logging and debugging capabilities
+- [x] 9. Add logging and debugging capabilities
+
+
+
+
+
   - Add structured logging to generateDailySeed() (date, seedPreview)
   - Add structured logging to generateUserWords() (userIdHash, date, count)
   - Add debug logging for word selection (slots, clusters, wildcards)
@@ -182,8 +205,14 @@
   - Add optional DEBUG_SEEDING environment variable for verbose logging
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 10.6_
 
-- [ ] 10. Write integration tests for full seeding flow
-  - [ ] 10.1 Create tests/integration/seeding.test.ts
+- [x] 10. Write integration tests for full seeding flow
+
+
+
+
+  - [x] 10.1 Create tests/integration/seeding.test.ts
+
+
     - Test full flow: generateDailySeed → store in Redis → generateUserWords
     - Test seed persistence (generate → retrieve from Redis → verify match)
     - Test determinism across service restarts (same inputs → same outputs)
@@ -194,8 +223,13 @@
     - Test performance (1000 word sets in <150ms)
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.5, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
 
-- [ ] 11. Performance validation and optimization
-  - [ ] 11.1 Create tests/performance/seeding.perf.test.ts
+- [x] 11. Performance validation and optimization
+
+
+  - [x] 11.1 Create tests/performance/seeding.perf.test.ts
+
+
+
     - Test single word set generation completes in <1ms
     - Test 1000 word sets complete in <150ms total
     - Test memory usage remains stable (no leaks)
@@ -203,7 +237,12 @@
     - Profile PRNG operations (nextUint, nextFloat, shuffle)
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7_
 
-- [ ] 12. Documentation and code review
+- [x] 12. Documentation and code review
+
+
+
+
+
   - Add JSDoc comments to all public methods in all services
   - Document PRNG algorithm choice and statistical properties
   - Document word selection algorithms and their guarantees
@@ -213,7 +252,12 @@
   - Add inline comments for complex bitwise operations in PRNG
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7_
 
-- [ ] 13. Error handling verification
+- [x] 13. Error handling verification
+
+
+
+
+
   - Verify startup fails gracefully with clear error messages when:
     - DAILY_SEED_SECRET is missing
     - Pool files are missing or malformed

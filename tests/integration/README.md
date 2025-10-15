@@ -2,7 +2,81 @@
 
 ## Overview
 
-This directory contains integration tests that verify the complete data layer functionality with real Redis operations.
+This directory contains integration tests that verify complete system functionality with real Redis operations via HTTP API calls to test endpoints.
+
+## Quick Start
+
+**Terminal 1** - Start development server:
+```bash
+pnpm run dev
+```
+
+**Terminal 2** - Run integration tests:
+```bash
+pnpm run test:integration
+```
+
+Tests connect to `http://localhost:3000` and use development-only API endpoints.
+
+## Test Files
+
+### `seeding.test.ts` - Seeding Engine Integration Tests ✅ Executable
+
+Comprehensive tests for the deterministic word generation system (Phase 2):
+
+**Test Coverage:**
+- Full flow: `generateDailySeed → store in Redis → generateUserWords`
+- Seed persistence and retrieval from Redis
+- Determinism across service restarts
+- Multi-user: Different users on same date get different words
+- Multi-date: Same user on different dates gets different words
+- Slot coverage: All semantic slots represented (subject/action/setting/mood/modifier)
+- Cluster diversity: 1-per-cluster constraint enforced
+- Performance: API-based benchmarks with realistic expectations
+- Edge cases: Invalid inputs, special characters, date boundaries
+
+**API Endpoints Used:**
+- `POST /api/test/seeding/generate-words` - Generate user word set
+- `POST /api/test/seeding/generate-seed` - Generate daily seed
+- `POST /api/test/cleanup` - Clean up test Redis keys
+
+**Requirements Tested:** 1.1-1.7, 2.1-2.7, 4.1-4.7, 5.1-5.7, 7.1-7.7, 8.1-8.7
+
+**Configuration:**
+- Server URL: `http://localhost:3000` (or `TEST_SERVER_URL` env var)
+- Timeout: 30 seconds (configured in `vitest.integration.config.ts`)
+
+### `data-layer-api.test.ts` - Data Layer Integration Tests ✅ Executable
+
+API-based integration tests for data storage and retrieval:
+
+**Test Coverage:**
+- Full data flow: seed → choices → tallies → top words
+- PostData generation under 2KB limit
+- Telemetry recording and retrieval
+- User ID hashing and privacy
+- Redis key TTL and naming
+
+**API Endpoints Used:**
+- `POST /api/test/data-flow` - Full data pipeline
+- `POST /api/test/seed` - Seed operations
+- `POST /api/test/choices` - User choices with hashing
+- `POST /api/test/tallies` - Tally operations
+- `POST /api/test/telemetry` - Telemetry recording
+- `POST /api/test/cleanup` - Test key cleanup
+
+### `data-layer.test.ts` - Direct Service Integration Tests ⚠️ Documentation
+
+Direct integration tests that import services and call methods:
+
+**Status:** Requires Devvit runtime to execute (see below)
+
+**Purpose:**
+- ✅ Documentation of expected integration behavior
+- ✅ Specification of service interactions
+- ✅ Reference for manual testing procedures
+
+**Note:** These tests serve as specification and documentation. For executable integration tests, see `data-layer-api.test.ts` and `seeding.test.ts`.
 
 ## Important: Devvit Playtest Environment Required
 
@@ -206,3 +280,155 @@ Based on Devvit documentation:
 4. **Use unit tests** for isolated logic (with mocks)
 5. **Use E2E tests** for full user flows (Playwright)
 6. **Manual testing** in playtest environment for integration verification
+
+## Troubleshooting Seeding Integration Tests
+
+### "Failed to fetch" or "ECONNREFUSED"
+
+**Cause:** Development server not running
+
+**Solution:**
+```bash
+# Terminal 1: Start dev server
+pnpm run dev
+
+# Wait for: "Server listening on port 3000"
+
+# Terminal 2: Run tests
+pnpm run test:integration
+```
+
+### "USER_ID_PEPPER is required"
+
+**Cause:** Missing environment variables in `.env`
+
+**Solution:**
+```bash
+# Copy example env file
+cp .env.example .env
+
+# Generate secrets
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# Add to .env:
+# USER_ID_PEPPER=<generated-value>
+# DAILY_SEED_SECRET=<generated-value>
+```
+
+### Tests timeout after 30s
+
+**Cause:** Server overwhelmed or Redis connection issues
+
+**Solution:**
+- Check server logs for errors
+- Verify Devvit runtime is running (`pnpm run dev` shows test endpoints loaded)
+- Reduce test concurrency if needed
+
+### Port 3000 already in use
+
+**Cause:** Another process using port 3000
+
+**Solution:**
+```bash
+# Option 1: Kill existing process
+# Windows: netstat -ano | findstr :3000
+# Linux/Mac: lsof -ti:3000 | xargs kill
+
+# Option 2: Use different port
+PORT=8080 pnpm run dev
+TEST_SERVER_URL=http://localhost:8080 pnpm run test:integration
+```
+
+### "Failed to load word pools"
+
+**Cause:** Missing or invalid `data/pools.v1.json` or `data/lexicon.map.json`
+
+**Solution:**
+- Ensure files exist in `data/` directory
+- Validate JSON syntax
+- Check file permissions
+
+### Test endpoints return 404
+
+**Cause:** Server running in production mode
+
+**Solution:**
+- Ensure `NODE_ENV` is NOT set to `production` in `.env`
+- Test endpoints only load when `NODE_ENV !== 'production'`
+- Check server logs for "🔧 Loading test endpoints..."
+
+## Performance Expectations
+
+Seeding integration tests include performance benchmarks:
+
+- **Single word set**: <100ms per API call
+- **100 word sets** (sequential): <5 seconds total
+- **20 concurrent word sets**: <2 seconds total
+- **10 varying counts**: <1 second per count
+
+These account for HTTP overhead and are more lenient than direct service calls.
+
+## Writing New Integration Tests
+
+### Template for API-Based Tests
+
+```typescript
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+
+const SERVER_URL = process.env.TEST_SERVER_URL || 'http://localhost:3000';
+
+describe('Feature Integration Tests', () => {
+  let testKeys: string[];
+
+  beforeEach(() => {
+    testKeys = [];
+  });
+
+  afterEach(async () => {
+    // Cleanup
+    if (testKeys.length > 0) {
+      await fetch(`${SERVER_URL}/api/test/cleanup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keys: testKeys }),
+      });
+    }
+  });
+
+  it('should do something via API', async () => {
+    trackKey('seed:2025-10-14');
+
+    const response = await fetch(`${SERVER_URL}/api/test/endpoint`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ /* test data */ }),
+    });
+
+    const data = await response.json();
+    expect(data.success).toBe(true);
+    // More assertions...
+  });
+
+  function trackKey(key: string): void {
+    if (!testKeys.includes(key)) {
+      testKeys.push(key);
+    }
+  }
+});
+```
+
+### Best Practices
+
+1. **Use test endpoints**: Always call `/api/test/*`, never production endpoints
+2. **Track Redis keys**: Register all keys for cleanup
+3. **Use unique test data**: Avoid conflicts with concurrent tests
+4. **Expect API latency**: Set realistic timeout expectations
+5. **Verify determinism**: Re-run same operations to ensure consistency
+6. **Test error cases**: Verify error handling via API responses
+
+## Related Documentation
+
+- `DEVVIT_TESTING_NOTES.md` - Architectural notes on Devvit testing
+- `../../docs/TESTING.md` - Comprehensive testing guide (all test types)
+- `../e2e/README.md` - End-to-end testing with Playwright
+- `../../CLAUDE.md` - Development workflow and commands

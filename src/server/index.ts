@@ -1,15 +1,55 @@
+// Load environment variables from .env file
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import { createServer, getServerPort, setContext } from '@devvit/server';
 import { redis } from '@devvit/web/server';
 import { IdentityService } from './services/identity.service';
 import { TelemetryService } from './services/telemetry.service';
+import { SeedingService } from './services/seeding.service';
 
-// Validate required environment variables at startup
+// Validate required environment variables and initialize services at startup
+// Note: _seedingService is created to validate pool/lexicon files at startup
+// Test endpoints use TestSeedingService instead for isolated testing
+let _seedingService: SeedingService;
+
 try {
   // Instantiate IdentityService to trigger USER_ID_PEPPER validation
   new IdentityService();
+
+  // Validate DAILY_SEED_SECRET
+  const dailySeedSecret = process.env.DAILY_SEED_SECRET;
+  if (!dailySeedSecret || dailySeedSecret.trim().length === 0) {
+    throw new Error(
+      'DAILY_SEED_SECRET environment variable is required. ' +
+        "Generate one using: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\""
+    );
+  }
+
+  // Validate DAILY_SEED_SECRET is a proper hex string (64 characters recommended)
+  if (!/^[0-9a-fA-F]+$/.test(dailySeedSecret)) {
+    throw new Error(
+      'DAILY_SEED_SECRET must be a valid hexadecimal string. ' +
+        "Generate one using: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\""
+    );
+  }
+
+  if (dailySeedSecret.length < 32) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      '⚠ Warning: DAILY_SEED_SECRET is shorter than recommended (64 characters). ' +
+        'Consider using a longer secret for better security.'
+    );
+  }
+
   // eslint-disable-next-line no-console
   console.log('✓ Environment variable validation passed');
+
+  // Initialize SeedingService (validates env vars and loads pool files)
+  _seedingService = new SeedingService(redis);
+  // eslint-disable-next-line no-console
+  console.log('✓ SeedingService initialized successfully');
 } catch (error) {
   // eslint-disable-next-line no-console
   console.error(
@@ -17,7 +57,7 @@ try {
     error instanceof Error ? error.message : error
   );
   // eslint-disable-next-line no-console
-  console.error('Server cannot start without required environment variables.');
+  console.error('Server cannot start without required configuration.');
   process.exit(1);
 }
 
@@ -52,37 +92,100 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
-const app = express();
+async function setupServer() {
+  const app = express();
 
-// Middleware to parse JSON bodies
-app.use(express.json());
+  // Middleware to parse JSON bodies
+  app.use(express.json());
 
-// Serve static files from public directory
-app.use(express.static('public'));
+  // Serve static files from public directory
+  app.use(express.static('public'));
 
-// Health check endpoint - validates server is running
-app.get('/api/health', async (req, res) => {
-  const telemetry = new TelemetryService(redis);
-  const date = new Date().toISOString().split('T')[0];
+  // Health check endpoint - validates server is running
+  app.get('/api/health', async (req, res) => {
+    try {
+      const telemetry = new TelemetryService(redis);
+      const date = new Date().toISOString().split('T')[0];
 
-  // Increment health check counter (non-blocking, won't impact response time)
-  await telemetry.incrementCounter(date, 'health_checks');
+      // Increment health check counter (non-blocking, won't impact response time)
+      await telemetry.incrementCounter(date, 'health_checks');
+    } catch (error) {
+      // Log but don't fail the health check
+      console.error(
+        'Telemetry increment failed for counter "health_checks" on date',
+        new Date().toISOString().split('T')[0] + ':',
+        error
+      );
+    }
 
-  res.json({
-    ok: true,
-    ts: Date.now(),
+    res.json({
+      ok: true,
+      ts: Date.now(),
+    });
   });
-});
 
-// Test endpoints - only available in development
-if (process.env.NODE_ENV !== 'production') {
-  // Use dynamic imports in an async context
-  (async () => {
+  // Test endpoints - only available in development
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🔧 Loading test endpoints...');
+
+    // Import enhanced TestSeedingService (with cluster diversity!)
+    const { TestSeedingService } = await import(
+      './services/test-seeding.service'
+    );
+    const testSeedingService = new TestSeedingService();
+
+    // Import other services for test endpoints
     const { DataService } = await import('./services/data.service');
     const dataService = new DataService(redis);
     const identityService = new IdentityService();
     const telemetryService = new TelemetryService(redis);
     const { PostDataService } = await import('./services/postdata.service');
+
+    // Test endpoint: Generate user words (using enhanced test service with cluster diversity)
+    app.post('/api/test/seeding/generate-words', async (req, res) => {
+      try {
+        const { userId, date, count } = req.body;
+        const words = await testSeedingService.generateUserWords(
+          userId,
+          date,
+          count
+        );
+        res.json({ success: true, words });
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        // Return 400 for validation errors, 500 for other errors
+        const isValidationError =
+          errorMessage.includes('must be') ||
+          errorMessage.includes('required') ||
+          errorMessage.includes('format');
+        res.status(isValidationError ? 400 : 500).json({
+          success: false,
+          error: errorMessage,
+        });
+      }
+    });
+
+    // Test endpoint: Generate daily seed (using enhanced test service)
+    app.post('/api/test/seeding/generate-seed', async (req, res) => {
+      try {
+        const { date } = req.body;
+        const seedData = await testSeedingService.generateDailySeed(date);
+        res.json({ success: true, seedData });
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        // Return 400 for validation errors, 500 for other errors
+        const isValidationError =
+          errorMessage.includes('must be') ||
+          errorMessage.includes('required') ||
+          errorMessage.includes('format');
+        res.status(isValidationError ? 400 : 500).json({
+          success: false,
+          error: errorMessage,
+        });
+      }
+    });
 
     // Test endpoint: Full data flow
     app.post('/api/test/data-flow', async (req, res) => {
@@ -212,34 +315,54 @@ if (process.env.NODE_ENV !== 'production') {
         });
       }
     });
-  })(); // Close async IIFE
+
+    console.log('✅ Test endpoints loaded successfully');
+  }
+
+  // Install trigger endpoint - called when app is installed
+  app.post('/internal/install', (req, res) => {
+    // Initialize any required data structures here
+    // For Phase 0, just acknowledge the installation
+    res.json({
+      status: 'installed',
+    });
+  });
+
+  // Error handling for unknown routes
+  app.use((req, res) => {
+    res.status(404).json({
+      error: {
+        code: 'NOT_FOUND',
+        message: `Route not found: ${req.method} ${req.url}`,
+      },
+    });
+  });
+
+  return app;
 }
 
-// Install trigger endpoint - called when app is installed
-app.post('/internal/install', (req, res) => {
-  // Initialize any required data structures here
-  // For Phase 0, just acknowledge the installation
-  res.json({
-    status: 'installed',
-  });
-});
-
-// Error handling for unknown routes
-app.use((req, res) => {
-  res.status(404).json({
-    error: {
-      code: 'NOT_FOUND',
-      message: `Route not found: ${req.method} ${req.url}`,
-    },
-  });
-});
-
 // Create and start the server
-const server = createServer(app);
-const port = getServerPort();
-server.listen(port, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Server listening on port ${port}`);
+async function startServer() {
+  const app = await setupServer();
+  const server = createServer(app);
+  const port = getServerPort();
+
+  server.listen(port, () => {
+    // eslint-disable-next-line no-console
+    console.log(`Server listening on port ${port}`);
+  });
+
+  return server;
+}
+
+// Start the server (wrap in async IIFE to avoid top-level await in CommonJS)
+// Export the promise for testing purposes
+const serverPromise = startServer();
+
+// Start immediately (don't await at top level)
+serverPromise.catch(error => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });
 
-export default server;
+export default serverPromise;

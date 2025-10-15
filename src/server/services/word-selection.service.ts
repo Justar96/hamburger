@@ -37,6 +37,13 @@ import { Theme, LexiconMap } from '../types/seeding.types.js';
 import { PRNG } from './prng.service.js';
 
 /**
+ * Check if debug logging is enabled via DEBUG_SEEDING environment variable.
+ */
+function isDebugEnabled(): boolean {
+  return process.env.DEBUG_SEEDING === 'true';
+}
+
+/**
  * WordSelectionService provides deterministic word selection algorithms
  * that ensure balanced, diverse, and fair word sets for users.
  */
@@ -76,6 +83,17 @@ export class WordSelectionService {
     const selected: string[] = [];
     const slotNames = Object.keys(theme.slots);
 
+    if (isDebugEnabled()) {
+      console.log(
+        JSON.stringify({
+          debug: 'selectSlotCoverage:start',
+          slots: slotNames,
+          usedClustersBefore: Array.from(usedClusters),
+          timestamp: new Date().toISOString(),
+        })
+      );
+    }
+
     for (const slotName of slotNames) {
       const slot = theme.slots[slotName];
 
@@ -88,6 +106,18 @@ export class WordSelectionService {
         // All clusters used in this slot, pick any word
         const word = prng.choice(slot.words);
         selected.push(word);
+
+        if (isDebugEnabled()) {
+          console.log(
+            JSON.stringify({
+              debug: 'selectSlotCoverage:slot',
+              slotName,
+              word,
+              reason: 'all_clusters_used',
+              timestamp: new Date().toISOString(),
+            })
+          );
+        }
         continue;
       }
 
@@ -96,6 +126,30 @@ export class WordSelectionService {
       const chosen = shuffled[0];
       selected.push(chosen.word);
       usedClusters.add(chosen.cluster);
+
+      if (isDebugEnabled()) {
+        console.log(
+          JSON.stringify({
+            debug: 'selectSlotCoverage:slot',
+            slotName,
+            word: chosen.word,
+            cluster: chosen.cluster,
+            candidatesCount: candidates.length,
+            timestamp: new Date().toISOString(),
+          })
+        );
+      }
+    }
+
+    if (isDebugEnabled()) {
+      console.log(
+        JSON.stringify({
+          debug: 'selectSlotCoverage:complete',
+          selected,
+          usedClustersAfter: Array.from(usedClusters),
+          timestamp: new Date().toISOString(),
+        })
+      );
     }
 
     return selected;
@@ -142,6 +196,18 @@ export class WordSelectionService {
     const selected: string[] = [];
     const shuffled = prng.shuffle(allWords);
 
+    if (isDebugEnabled()) {
+      console.log(
+        JSON.stringify({
+          debug: 'selectWithDiversity:start',
+          count,
+          totalWords: allWords.length,
+          usedClustersBefore: Array.from(usedClusters),
+          timestamp: new Date().toISOString(),
+        })
+      );
+    }
+
     for (const word of shuffled) {
       if (selected.length >= count) break;
 
@@ -149,13 +215,47 @@ export class WordSelectionService {
       if (!metadata) {
         // No metadata, treat as unique cluster - always selectable
         selected.push(word);
+
+        if (isDebugEnabled()) {
+          console.log(
+            JSON.stringify({
+              debug: 'selectWithDiversity:word',
+              word,
+              reason: 'no_metadata',
+              timestamp: new Date().toISOString(),
+            })
+          );
+        }
         continue;
       }
 
       if (!usedClusters.has(metadata.cluster)) {
         selected.push(word);
         usedClusters.add(metadata.cluster);
+
+        if (isDebugEnabled()) {
+          console.log(
+            JSON.stringify({
+              debug: 'selectWithDiversity:word',
+              word,
+              cluster: metadata.cluster,
+              slot: metadata.slot,
+              timestamp: new Date().toISOString(),
+            })
+          );
+        }
       }
+    }
+
+    if (isDebugEnabled()) {
+      console.log(
+        JSON.stringify({
+          debug: 'selectWithDiversity:complete',
+          selected,
+          usedClustersAfter: Array.from(usedClusters),
+          timestamp: new Date().toISOString(),
+        })
+      );
     }
 
     return selected;
@@ -206,15 +306,75 @@ export class WordSelectionService {
     const wildcards: string[] = [];
     const shuffled = prng.shuffle(allWords);
 
+    if (isDebugEnabled()) {
+      console.log(
+        JSON.stringify({
+          debug: 'selectWildcards:start',
+          count,
+          totalWords: allWords.length,
+          usedWordsCount: usedWords.size,
+          usedClustersBefore: Array.from(usedClusters),
+          timestamp: new Date().toISOString(),
+        })
+      );
+    }
+
     for (const word of shuffled) {
       if (wildcards.length >= count) break;
-      if (usedWords.has(word)) continue;
+      if (usedWords.has(word)) {
+        if (isDebugEnabled()) {
+          console.log(
+            JSON.stringify({
+              debug: 'selectWildcards:skip',
+              word,
+              reason: 'already_used',
+              timestamp: new Date().toISOString(),
+            })
+          );
+        }
+        continue;
+      }
 
       const metadata = lexicon.mappings[word];
-      if (metadata && usedClusters.has(metadata.cluster)) continue;
+      if (metadata && usedClusters.has(metadata.cluster)) {
+        if (isDebugEnabled()) {
+          console.log(
+            JSON.stringify({
+              debug: 'selectWildcards:skip',
+              word,
+              reason: 'cluster_used',
+              cluster: metadata.cluster,
+              timestamp: new Date().toISOString(),
+            })
+          );
+        }
+        continue;
+      }
 
       wildcards.push(word);
       if (metadata) usedClusters.add(metadata.cluster);
+
+      if (isDebugEnabled()) {
+        console.log(
+          JSON.stringify({
+            debug: 'selectWildcards:word',
+            word,
+            cluster: metadata?.cluster || 'none',
+            timestamp: new Date().toISOString(),
+          })
+        );
+      }
+    }
+
+    if (isDebugEnabled()) {
+      console.log(
+        JSON.stringify({
+          debug: 'selectWildcards:complete',
+          wildcards,
+          usedClustersAfter: Array.from(usedClusters),
+          timestamp: new Date().toISOString(),
+        })
+      );
     }
 
     return wildcards;
