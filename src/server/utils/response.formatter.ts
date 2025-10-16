@@ -34,14 +34,13 @@ export enum AdditionalAPIErrorCode {
 }
 
 // Combine all error codes for complete coverage
+// Combine all error codes for complete coverage
 export const APIErrorCode = {
-  // Import validation error codes
   INVALID_DATE: ValidationErrorCode.INVALID_DATE,
   INVALID_WORDS: ValidationErrorCode.INVALID_WORDS,
   WORD_COUNT_EXCEEDED: ValidationErrorCode.WORD_COUNT_EXCEEDED,
   MISSING_PARAMETER: ValidationErrorCode.MISSING_PARAMETER,
   INVALID_TYPE: ValidationErrorCode.INVALID_TYPE,
-  // Add additional API error codes
   UNAUTHORIZED: AdditionalAPIErrorCode.UNAUTHORIZED,
   RATE_LIMITED: AdditionalAPIErrorCode.RATE_LIMITED,
   INTERNAL_ERROR: AdditionalAPIErrorCode.INTERNAL_ERROR,
@@ -49,7 +48,7 @@ export const APIErrorCode = {
   SERVICE_UNAVAILABLE: AdditionalAPIErrorCode.SERVICE_UNAVAILABLE,
 } as const;
 
-export type APIErrorCode = ValidationErrorCode | AdditionalAPIErrorCode;
+export type APIErrorCodeValue = ValidationErrorCode | AdditionalAPIErrorCode;
 
 /**
  * Structured API error information.
@@ -57,7 +56,7 @@ export type APIErrorCode = ValidationErrorCode | AdditionalAPIErrorCode;
  */
 export interface APIError {
   /** Machine-readable error code for client handling */
-  code: APIErrorCode;
+  code: APIErrorCodeValue;
   /** Human-readable error message */
   message: string;
   /** Optional additional error context and details */
@@ -216,7 +215,7 @@ export function formatSuccessResponse<T extends Record<string, unknown>>(
  */
 export function formatErrorResponse(
   error: APIError | Error | string | unknown,
-  defaultCode: APIErrorCode = APIErrorCode.INTERNAL_ERROR,
+  defaultCode: APIErrorCodeValue = APIErrorCode.INTERNAL_ERROR,
   requestId?: string
 ): ErrorResponseData {
   let apiError: APIError;
@@ -277,7 +276,7 @@ export function formatErrorResponse(
  * const status = getHttpStatusForError(APIErrorCode.INTERNAL_ERROR); // 500
  * ```
  */
-export function getHttpStatusForError(errorCode: APIErrorCode): number {
+export function getHttpStatusForError(errorCode: APIErrorCodeValue): number {
   return ERROR_STATUS_MAP[errorCode] || 500;
 }
 
@@ -318,7 +317,7 @@ function isAPIError(error: unknown): error is APIError {
  * ```
  */
 export function createAPIError(
-  code: APIErrorCode,
+  code: APIErrorCodeValue,
   message: string,
   details?: APIError['details']
 ): APIError {
@@ -381,7 +380,7 @@ export function sendSuccessResponse<T extends Record<string, unknown>>(
 export function sendErrorResponse(
   res: any, // Express Response type
   error: APIError | Error | string | unknown,
-  defaultCode: APIErrorCode = APIErrorCode.INTERNAL_ERROR,
+  defaultCode: APIErrorCodeValue = APIErrorCode.INTERNAL_ERROR,
   requestId?: string
 ): void {
   const response = formatErrorResponse(error, defaultCode, requestId);

@@ -25,7 +25,9 @@ import {
   sendErrorResponse,
   APIErrorCode,
   createAPIError,
+  type APIErrorCodeValue,
 } from '../utils/response.formatter';
+import { extractErrorContext, logError } from '../utils/error-handler';
 
 /**
  * Response structure for /api/progress endpoint
@@ -139,7 +141,10 @@ export async function handleProgress(
     // Use shorter cache for current day, longer for past days
     const cacheMaxAge = timeLeftSec > 0 ? 30 : 300; // 30s for active, 5min for past
     res.set('Cache-Control', `public, max-age=${cacheMaxAge}`);
-    res.set('ETag', `"${date}-${topWords.length}-${Date.now()}"`.substring(0, 32));
+    res.set(
+      'ETag',
+      `"${date}-${topWords.length}-${Date.now()}"`.substring(0, 32)
+    );
 
     // Build response
     const response: ProgressResponse = {
@@ -148,10 +153,21 @@ export async function handleProgress(
       timeLeftSec,
     };
 
-    // Record performance telemetry
-    const latency = Date.now() - startTime;
-    await telemetryService.recordLatency(date, latency);
-    await telemetryService.incrementCounter(date, 'progress_requests');
+    // Record performance telemetry (non-critical)
+    try {
+      const latency = Date.now() - startTime;
+      await telemetryService.recordLatency(date, latency);
+      await telemetryService.incrementCounter(date, 'progress_requests');
+    } catch (telemetryError) {
+      // Telemetry failure is non-critical, log but continue
+      console.log('[TELEMETRY_FAILURE]', {
+        operation: 'recordLatency/incrementCounter',
+        error:
+          telemetryError instanceof Error
+            ? telemetryError.message
+            : String(telemetryError),
+      });
+    }
 
     // Send success response
     sendSuccessResponse(
@@ -160,30 +176,56 @@ export async function handleProgress(
       requestId
     );
   } catch (error) {
-    // Record error telemetry
+    // Record error telemetry (non-critical)
     const date =
       (req.query.date as string) || new Date().toISOString().split('T')[0];
-    await telemetryService.incrementCounter(date, 'progress_errors');
+    try {
+      await telemetryService.incrementCounter(date, 'progress_errors');
+    } catch (telemetryError) {
+      // Telemetry failure is non-critical, log but continue
+      console.log('[TELEMETRY_FAILURE]', {
+        operation: 'incrementCounter',
+        counter: 'progress_errors',
+        error:
+          telemetryError instanceof Error
+            ? telemetryError.message
+            : String(telemetryError),
+      });
+    }
 
-    // Log error with context
-    console.error('Progress endpoint error:', {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+    // Extract error context for structured logging
+    const context = extractErrorContext(
+      req,
       requestId,
-      date: req.query.date,
-      timestamp: new Date().toISOString(),
-    });
+      undefined, // userHash not available in catch block
+      'progress',
+      { date: req.query.date }
+    );
+
+    // Determine error code based on error type
+    let errorCode: APIErrorCodeValue = APIErrorCode.INTERNAL_ERROR;
+    let errorMessage = 'Failed to retrieve progress data';
+
+    // Check if this is a service failure
+    if (error instanceof Error) {
+      if (
+        error.message.includes('Redis') ||
+        error.message.includes('connection')
+      ) {
+        errorCode = APIErrorCode.SERVICE_UNAVAILABLE as APIErrorCode;
+        errorMessage = 'Service temporarily unavailable';
+      }
+    }
+
+    // Log error with structured context
+    logError(error, context, errorCode);
 
     // Send error response
-    const apiError = createAPIError(
-      APIErrorCode.INTERNAL_ERROR,
-      'Failed to retrieve progress data',
-      {
-        requestId,
-        timestamp: Date.now(),
-      }
-    );
-    sendErrorResponse(res, apiError, APIErrorCode.INTERNAL_ERROR, requestId);
+    const apiError = createAPIError(errorCode, errorMessage, {
+      requestId,
+      timestamp: Date.now(),
+    });
+    sendErrorResponse(res, apiError, errorCode, requestId);
   }
 }
 

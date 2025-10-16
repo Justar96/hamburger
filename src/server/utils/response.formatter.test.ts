@@ -16,10 +16,7 @@ import {
   formatErrorResponse,
   getHttpStatusForError,
   APIErrorCode,
-  type APIResponse,
   type APIError,
-  type SuccessResponseData,
-  type ErrorResponseData,
 } from './response.formatter.js';
 
 describe('Response Formatter', () => {

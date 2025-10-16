@@ -6,7 +6,7 @@ Think carefully and implement the most concise solution that changes as little c
 
 ### Required Approach
 
-1. **Read existing code first** - Always examine the codebase to understand patterns and reuse existing functions 
+1. **Read existing code first** - Always examine the codebase to understand patterns and reuse existing functions
 2. **Question assumptions** - Ask clarifying questions if intent is unclear rather than guessing
 3. **Favor simplicity** - Choose working solutions over "enterprise" patterns
 4. **Feel Free to use MCP available tools** - such search and other tools that will benefits development workflow and get the most accurate informations.
@@ -24,7 +24,6 @@ Think carefully and implement the most concise solution that changes as little c
 - Complete each test fully before proceeding to the next
 - Structure tests correctly before blaming the codebase
 - Write verbose tests for debugging purposes
-
 
 ### Communication Style
 
@@ -63,5 +62,3 @@ Think carefully and implement the most concise solution that changes as little c
 - Follow existing naming patterns consistently
 - Avoid over-engineering - prefer simple functions over complex abstractions
 - Prevent resource leaks - clean up connections, timeouts, and event listeners
-
-

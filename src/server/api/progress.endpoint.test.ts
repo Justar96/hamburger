@@ -67,10 +67,11 @@ describe('Progress Endpoint', () => {
     };
 
     mockRes = {
-      json: vi.fn((data) => {
+      json: vi.fn(data => {
         responseData = data;
+        return mockRes;
       }),
-      status: vi.fn((code) => {
+      status: vi.fn(code => {
         statusCode = code;
         return mockRes;
       }),
@@ -78,7 +79,7 @@ describe('Progress Endpoint', () => {
         headers[key] = value;
         return mockRes;
       }),
-    };
+    } as any;
 
     // Setup default mock implementations
     (mockIdentityService.hashUserId as any).mockReturnValue('hashed_user_123');
@@ -119,8 +120,13 @@ describe('Progress Endpoint', () => {
       });
 
       // Verify service calls
-      expect(mockIdentityService.hashUserId).toHaveBeenCalledWith('t2_testuser123');
-      expect(mockDataService.getTopWords).toHaveBeenCalledWith('2025-10-15', 10);
+      expect(mockIdentityService.hashUserId).toHaveBeenCalledWith(
+        't2_testuser123'
+      );
+      expect(mockDataService.getTopWords).toHaveBeenCalledWith(
+        '2025-10-15',
+        10
+      );
       expect(mockDataService.getUserChoices).toHaveBeenCalledWith(
         '2025-10-15',
         'hashed_user_123'
@@ -207,7 +213,7 @@ describe('Progress Endpoint', () => {
       // Import the mocked module and modify it
       const devvitModule = await import('@devvit/server');
       const originalUserId = devvitModule.context.userId;
-      
+
       // Temporarily set userId to null
       (devvitModule.context as any).userId = null;
 
@@ -292,9 +298,12 @@ describe('Progress Endpoint', () => {
         mockTelemetryService
       );
 
-      expect(statusCode).toBe(500);
-      expect(responseData.error.code).toBe(APIErrorCode.INTERNAL_ERROR);
-      expect(responseData.error.message).toBe('Failed to retrieve progress data');
+      // Should return 503 for Redis connection failures
+      expect(statusCode).toBe(503);
+      expect(responseData.error.code).toBe(APIErrorCode.SERVICE_UNAVAILABLE);
+      expect(responseData.error.message).toBe(
+        'Service temporarily unavailable'
+      );
     });
 
     it('should record error telemetry on failures', async () => {

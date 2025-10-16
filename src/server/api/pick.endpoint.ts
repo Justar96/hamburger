@@ -30,7 +30,13 @@ import {
   sendErrorResponse,
   APIErrorCode,
   createAPIError,
+  type APIErrorCodeValue,
 } from '../utils/response.formatter';
+import {
+  extractErrorContext,
+  logError,
+  handleServiceFailure,
+} from '../utils/error-handler';
 
 /**
  * Request structure for /api/pick endpoint
@@ -255,10 +261,21 @@ export async function handlePick(
         top: topWords,
       };
 
-      // Record performance telemetry
-      const latency = Date.now() - startTime;
-      await telemetryService.recordLatency(date, latency);
-      await telemetryService.incrementCounter(date, 'pick_requests');
+      // Record performance telemetry (non-critical)
+      try {
+        const latency = Date.now() - startTime;
+        await telemetryService.recordLatency(date, latency);
+        await telemetryService.incrementCounter(date, 'pick_requests');
+      } catch (telemetryError) {
+        // Telemetry failure is non-critical, log but continue
+        console.log('[TELEMETRY_FAILURE]', {
+          operation: 'recordLatency/incrementCounter',
+          error:
+            telemetryError instanceof Error
+              ? telemetryError.message
+              : String(telemetryError),
+        });
+      }
 
       // Send success response
       sendSuccessResponse(
@@ -267,21 +284,33 @@ export async function handlePick(
         requestId
       );
     } catch (storageError) {
-      // If storage fails, we need to clean up any partial state
-      // For now, we log the error and return a server error
-      console.error('Pick endpoint storage error:', {
-        error:
-          storageError instanceof Error
-            ? storageError.message
-            : String(storageError),
-        stack: storageError instanceof Error ? storageError.stack : undefined,
+      // Extract error context for structured logging
+      const context = extractErrorContext(
+        req,
         requestId,
         userHash,
-        date,
-        words,
-        timestamp: new Date().toISOString(),
-      });
+        'pick_storage',
+        { date, wordCount: words.length }
+      );
 
+      // Handle service failure gracefully
+      const serviceError = handleServiceFailure(
+        storageError,
+        'DataService',
+        context,
+        true // Critical service
+      );
+
+      if (serviceError) {
+        return sendErrorResponse(
+          res,
+          serviceError,
+          serviceError.code,
+          requestId
+        );
+      }
+
+      // Fallback error response
       const apiError = createAPIError(
         APIErrorCode.INTERNAL_ERROR,
         'Failed to store word choices',
@@ -298,28 +327,54 @@ export async function handlePick(
       );
     }
   } catch (error) {
-    // Record error telemetry
+    // Record error telemetry (non-critical)
     const date = req.body?.date || new Date().toISOString().split('T')[0];
-    await telemetryService.incrementCounter(date, 'pick_errors');
+    try {
+      await telemetryService.incrementCounter(date, 'pick_errors');
+    } catch (telemetryError) {
+      // Telemetry failure is non-critical, log but continue
+      console.log('[TELEMETRY_FAILURE]', {
+        operation: 'incrementCounter',
+        counter: 'pick_errors',
+        error:
+          telemetryError instanceof Error
+            ? telemetryError.message
+            : String(telemetryError),
+      });
+    }
 
-    // Log error with context
-    console.error('Pick endpoint error:', {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+    // Extract error context for structured logging
+    const context = extractErrorContext(
+      req,
       requestId,
-      body: req.body,
-      timestamp: new Date().toISOString(),
-    });
+      undefined, // userHash not available in catch block
+      'pick',
+      { date: req.body?.date, bodyPresent: !!req.body }
+    );
+
+    // Determine error code based on error type
+    let errorCode: APIErrorCodeValue = APIErrorCode.INTERNAL_ERROR;
+    let errorMessage = 'Failed to process word selection';
+
+    // Check if this is a service failure
+    if (error instanceof Error) {
+      if (
+        error.message.includes('Redis') ||
+        error.message.includes('connection')
+      ) {
+        errorCode = APIErrorCode.SERVICE_UNAVAILABLE as APIErrorCode;
+        errorMessage = 'Service temporarily unavailable';
+      }
+    }
+
+    // Log error with structured context
+    logError(error, context, errorCode);
 
     // Send error response
-    const apiError = createAPIError(
-      APIErrorCode.INTERNAL_ERROR,
-      'Failed to process word selection',
-      {
-        requestId,
-        timestamp: Date.now(),
-      }
-    );
-    sendErrorResponse(res, apiError, APIErrorCode.INTERNAL_ERROR, requestId);
+    const apiError = createAPIError(errorCode, errorMessage, {
+      requestId,
+      timestamp: Date.now(),
+    });
+    sendErrorResponse(res, apiError, errorCode, requestId);
   }
 }

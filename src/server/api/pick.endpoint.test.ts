@@ -560,12 +560,12 @@ describe('handlePick', () => {
         mockRateLimitService as any
       );
 
-      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.status).toHaveBeenCalledWith(503);
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({
           error: expect.objectContaining({
-            code: APIErrorCode.INTERNAL_ERROR,
-            message: 'Failed to store word choices',
+            code: APIErrorCode.SERVICE_UNAVAILABLE,
+            message: expect.stringContaining('Service temporarily unavailable'),
           }),
         })
       );

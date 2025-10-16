@@ -24,14 +24,15 @@ import { SeedingService } from '../services/seeding.service';
 import { DataService } from '../services/data.service';
 import { IdentityService } from '../services/identity.service';
 import { TelemetryService } from '../services/telemetry.service';
-import { PostDataService } from '../services/postdata.service';
 import { validateDate } from '../validation/api.validation';
 import {
   sendSuccessResponse,
   sendErrorResponse,
   APIErrorCode,
   createAPIError,
+  type APIErrorCodeValue,
 } from '../utils/response.formatter';
+import { extractErrorContext, logError } from '../utils/error-handler';
 
 /**
  * Response structure for /api/init endpoint
@@ -131,8 +132,8 @@ export async function handleInit(
 
     const date = dateParam;
 
-    // Hash user ID for privacy
-    const userHash = identityService.hashUserId(userId);
+    // Hash user ID for privacy (for logging/telemetry)
+    const _userHash = identityService.hashUserId(userId);
 
     // Generate or retrieve daily seed
     let seedData = await dataService.getSeed(date);
@@ -184,30 +185,56 @@ export async function handleInit(
       requestId
     );
   } catch (error) {
-    // Record error telemetry
+    // Record error telemetry (non-critical, don't let it fail the error handling)
     const date =
       (req.query.date as string) || new Date().toISOString().split('T')[0];
-    await telemetryService.incrementCounter(date, 'init_errors');
+    try {
+      await telemetryService.incrementCounter(date, 'init_errors');
+    } catch (telemetryError) {
+      // Telemetry failure is non-critical, log but continue
+      console.log('[TELEMETRY_FAILURE]', {
+        operation: 'incrementCounter',
+        counter: 'init_errors',
+        error:
+          telemetryError instanceof Error
+            ? telemetryError.message
+            : String(telemetryError),
+      });
+    }
 
-    // Log error with context
-    console.error('Init endpoint error:', {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+    // Extract error context for structured logging
+    const context = extractErrorContext(
+      req,
       requestId,
-      date: req.query.date,
-      timestamp: new Date().toISOString(),
-    });
+      undefined, // userHash not available in catch block
+      'init',
+      { date: req.query.date }
+    );
+
+    // Determine error code based on error type
+    let errorCode: APIErrorCodeValue = APIErrorCode.INTERNAL_ERROR;
+    let errorMessage = 'Failed to initialize game state';
+
+    // Check if this is a service failure
+    if (error instanceof Error) {
+      if (
+        error.message.includes('Redis') ||
+        error.message.includes('connection')
+      ) {
+        errorCode = APIErrorCode.SERVICE_UNAVAILABLE as APIErrorCode;
+        errorMessage = 'Service temporarily unavailable';
+      }
+    }
+
+    // Log error with structured context
+    logError(error, context, errorCode);
 
     // Send error response
-    const apiError = createAPIError(
-      APIErrorCode.INTERNAL_ERROR,
-      'Failed to initialize game state',
-      {
-        requestId,
-        timestamp: Date.now(),
-      }
-    );
-    sendErrorResponse(res, apiError, APIErrorCode.INTERNAL_ERROR, requestId);
+    const apiError = createAPIError(errorCode, errorMessage, {
+      requestId,
+      timestamp: Date.now(),
+    });
+    sendErrorResponse(res, apiError, errorCode, requestId);
   }
 }
 

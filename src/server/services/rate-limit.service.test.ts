@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { RateLimitService, type RateLimitResult } from './rate-limit.service';
+import { RateLimitService } from './rate-limit.service';
 
 // Mock Redis client interface
 interface MockRedisClient {

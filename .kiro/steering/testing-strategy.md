@@ -33,6 +33,7 @@ This document provides guidance on when to use different testing approaches in t
 ### 1. Unit Tests (Vitest)
 
 **When to Use:**
+
 - Testing isolated functions/classes
 - Pure algorithmic logic
 - Service methods with mocked dependencies
@@ -40,6 +41,7 @@ This document provides guidance on when to use different testing approaches in t
 - CI/CD pipeline
 
 **Characteristics:**
+
 - ✅ Fast execution (<1s for entire suite)
 - ✅ No external dependencies
 - ✅ Run in any environment
@@ -47,6 +49,7 @@ This document provides guidance on when to use different testing approaches in t
 - ❌ Don't test integration points
 
 **Examples:**
+
 ```typescript
 // Good for unit tests
 describe('CryptoService', () => {
@@ -77,6 +80,7 @@ describe('DataService', () => {
 **Location:** `src/**/*.test.ts`, `tests/*.test.ts`
 
 **Run Command:**
+
 ```bash
 pnpm test                # Run all unit tests
 pnpm test:watch          # Watch mode for development
@@ -90,6 +94,7 @@ pnpm test path/to/file   # Run specific test file
 ### 2. Integration Tests (API-Based)
 
 **When to Use:**
+
 - Testing service interactions
 - Verifying data flows between components
 - Testing with real Redis (via Devvit runtime)
@@ -97,6 +102,7 @@ pnpm test path/to/file   # Run specific test file
 - Testing seeding engine with cluster diversity
 
 **Characteristics:**
+
 - ⚡ Medium speed (< 1s for 33 tests)
 - ⚠️ Requires dev server running
 - ✅ Tests real service integration
@@ -105,11 +111,13 @@ pnpm test path/to/file   # Run specific test file
 
 **Devvit Constraint:**
 Integration tests in Devvit projects MUST use HTTP API endpoints because:
+
 - Redis is provided by Devvit runtime, not a local instance
 - Direct service imports fail without Devvit context
 - API testing simulates real production usage
 
 **Examples:**
+
 ```typescript
 // Integration test structure
 describe('Seeding Engine Integration', () => {
@@ -148,6 +156,7 @@ describe('Seeding Engine Integration', () => {
 **Location:** `tests/integration/**/*.test.ts`
 
 **Run Command:**
+
 ```bash
 # Terminal 1: Start dev server
 pnpm run dev
@@ -162,6 +171,7 @@ pnpm vitest run tests/integration/seeding.test.ts --config vitest.integration.co
 **Configuration:** `vitest.integration.config.ts` (30s timeout, includes only integration tests)
 
 **Test Endpoints (Development Only):**
+
 ```
 POST /api/test/seeding/generate-words
 POST /api/test/seeding/generate-seed
@@ -174,6 +184,7 @@ POST /api/test/cleanup
 ```
 
 **Key Files:**
+
 - `tests/integration/README.md` - Comprehensive integration testing guide
 - `tests/integration/DEVVIT_TESTING_NOTES.md` - Devvit-specific constraints
 - `src/server/index.ts` (lines 121-188) - Test endpoint implementations
@@ -183,6 +194,7 @@ POST /api/test/cleanup
 ### 3. E2E Tests (Playwright)
 
 **When to Use:**
+
 - Testing complete user workflows
 - Browser interaction testing
 - Visual/UI testing
@@ -190,6 +202,7 @@ POST /api/test/cleanup
 - Pre-deployment validation
 
 **Characteristics:**
+
 - 🐌 Slowest execution (seconds to minutes)
 - ⚠️ Requires running server + browser
 - ✅ Tests real user experience
@@ -197,6 +210,7 @@ POST /api/test/cleanup
 - ❌ Brittle (UI changes break tests)
 
 **Examples:**
+
 ```typescript
 // E2E test structure
 test('user can select and submit words', async ({ page }) => {
@@ -221,6 +235,7 @@ test('user can select and submit words', async ({ page }) => {
 **Location:** `tests/e2e/**/*.spec.ts`
 
 **Run Command:**
+
 ```bash
 pnpm run test:e2e          # Run all E2E tests
 pnpm run test:e2e --ui     # Run with Playwright UI
@@ -235,31 +250,29 @@ The seeding engine has unique testing requirements due to its algorithmic comple
 
 ### TestSeedingService vs Real SeedingService
 
-| Aspect | TestSeedingService | Real SeedingService |
-|--------|-------------------|---------------------|
-| **Storage** | In-memory (Map) | Redis (via Devvit) |
-| **Use Case** | Integration tests | Production |
-| **Redis Required** | ❌ No | ✅ Yes |
-| **Cluster Diversity** | ✅ Full implementation | ✅ Full implementation |
-| **Works with** | `tsx watch` | `devvit playtest` or production |
-| **Location** | `src/server/services/seeding.service.test.ts` | `src/server/services/seeding.service.ts` |
+| Aspect                | TestSeedingService                            | Real SeedingService                      |
+| --------------------- | --------------------------------------------- | ---------------------------------------- |
+| **Storage**           | In-memory (Map)                               | Redis (via Devvit)                       |
+| **Use Case**          | Integration tests                             | Production                               |
+| **Redis Required**    | ❌ No                                         | ✅ Yes                                   |
+| **Cluster Diversity** | ✅ Full implementation                        | ✅ Full implementation                   |
+| **Works with**        | `tsx watch`                                   | `devvit playtest` or production          |
+| **Location**          | `src/server/services/seeding.service.test.ts` | `src/server/services/seeding.service.ts` |
 
 ### When to Use Each
 
 **Use TestSeedingService (Integration Tests):**
+
 ```typescript
 // API endpoint uses TestSeedingService
 app.post('/api/test/seeding/generate-words', async (req, res) => {
-  const words = await testSeedingService.generateUserWords(
-    userId,
-    date,
-    count
-  );
+  const words = await testSeedingService.generateUserWords(userId, date, count);
   res.json({ success: true, words });
 });
 ```
 
 **Benefits:**
+
 - ✅ No Redis dependency for tests
 - ✅ Fast test execution
 - ✅ Works with `pnpm run dev`
@@ -267,6 +280,7 @@ app.post('/api/test/seeding/generate-words', async (req, res) => {
 - ✅ Deterministic (same as production)
 
 **Use Real SeedingService (Production):**
+
 ```typescript
 // Production code uses real SeedingService
 const seedingService = new SeedingService(redis);
@@ -274,6 +288,7 @@ const words = await seedingService.generateUserWords(userId, date, count);
 ```
 
 **Benefits:**
+
 - ✅ Real Redis persistence
 - ✅ TTL and expiration
 - ✅ Production-identical behavior
@@ -288,12 +303,14 @@ const words = await seedingService.generateUserWords(userId, date, count);
 **Approach:** Unit tests (100% coverage)
 
 **Rationale:**
+
 - Pure functions (deterministic)
 - No external dependencies
 - Fast execution
 - Critical for security
 
 **Example:**
+
 ```bash
 pnpm test src/server/services/crypto.service.test.ts
 ```
@@ -303,6 +320,7 @@ pnpm test src/server/services/crypto.service.test.ts
 **Approach:** Unit tests (100% coverage)
 
 **Rationale:**
+
 - Algorithmic correctness
 - Determinism verification
 - Statistical distribution testing
@@ -313,12 +331,14 @@ pnpm test src/server/services/crypto.service.test.ts
 **Approach:** Unit tests with mocked Redis (90% coverage) + Integration tests for critical flows (10%)
 
 **Rationale:**
+
 - Unit tests for method logic
 - Mock Redis for speed
 - Integration tests for Redis operations
 - API tests for full data flow
 
 **Unit Test Example:**
+
 ```typescript
 const mockRedis = {
   set: vi.fn().mockResolvedValue('OK'),
@@ -328,6 +348,7 @@ const service = new DataService(mockRedis as any);
 ```
 
 **Integration Test Example:**
+
 ```typescript
 const response = await fetch(`${SERVER_URL}/api/test/data-flow`, {
   method: 'POST',
@@ -340,12 +361,14 @@ const response = await fetch(`${SERVER_URL}/api/test/data-flow`, {
 **Approach:** Unit tests (algorithm) + Integration tests (full flow + cluster diversity)
 
 **Rationale:**
+
 - Unit tests for core algorithms (PRNG, seed generation, validation)
 - Integration tests for word selection with cluster diversity
 - API tests for determinism verification
 - Both use deterministic algorithms for reproducibility
 
 **Unit Test Example:**
+
 ```typescript
 describe('SeedingService', () => {
   it('validates date format', () => {
@@ -356,6 +379,7 @@ describe('SeedingService', () => {
 ```
 
 **Integration Test Example:**
+
 ```typescript
 it('enforces 1-per-cluster constraint', async () => {
   const response = await apiRequest('seeding/generate-words', {
@@ -377,6 +401,7 @@ it('enforces 1-per-cluster constraint', async () => {
 **Approach:** Unit tests (algorithm correctness)
 
 **Rationale:**
+
 - Pure algorithmic logic
 - Slot coverage verification
 - Cluster diversity algorithm
@@ -387,6 +412,7 @@ it('enforces 1-per-cluster constraint', async () => {
 **Approach:** Integration tests (API testing)
 
 **Rationale:**
+
 - Tests request/response flow
 - Validates middleware
 - Tests error handling
@@ -396,15 +422,15 @@ it('enforces 1-per-cluster constraint', async () => {
 
 ## Test Coverage Goals
 
-| Component | Unit Tests | Integration Tests | E2E Tests | Total |
-|-----------|-----------|-------------------|-----------|-------|
-| Crypto Services | 100% | - | - | 100% |
-| PRNG | 100% | - | - | 100% |
-| Data Services | 90% | 10% | - | 100% |
-| Seeding Engine | 70% | 30% | - | 100% |
-| Word Selection | 100% | - | - | 100% |
-| Server Endpoints | - | 100% | - | 100% |
-| User Flows | - | - | 100% | 100% |
+| Component        | Unit Tests | Integration Tests | E2E Tests | Total |
+| ---------------- | ---------- | ----------------- | --------- | ----- |
+| Crypto Services  | 100%       | -                 | -         | 100%  |
+| PRNG             | 100%       | -                 | -         | 100%  |
+| Data Services    | 90%        | 10%               | -         | 100%  |
+| Seeding Engine   | 70%        | 30%               | -         | 100%  |
+| Word Selection   | 100%       | -                 | -         | 100%  |
+| Server Endpoints | -          | 100%              | -         | 100%  |
+| User Flows       | -          | -                 | 100%      | 100%  |
 
 ---
 
@@ -430,6 +456,7 @@ test:
 ```
 
 **Note:** Integration tests are NOT run in CI because:
+
 - ❌ Devvit runtime not available in GitHub Actions
 - ❌ Redis connection requires Devvit infrastructure
 - ✅ Unit tests provide sufficient coverage for CI
@@ -487,7 +514,7 @@ const { success } = await response.json();
 ```yaml
 # ❌ This will fail in GitHub Actions
 - name: Run integration tests
-  run: pnpm run test:integration  # No Devvit runtime!
+  run: pnpm run test:integration # No Devvit runtime!
 ```
 
 ### ✅ DO: Only run unit tests in CI
@@ -495,7 +522,7 @@ const { success } = await response.json();
 ```yaml
 # ✅ This works
 - name: Run unit tests
-  run: pnpm test  # Uses mocks, no external dependencies
+  run: pnpm test # Uses mocks, no external dependencies
 ```
 
 ### ❌ DON'T: Use Math.random() in seeding algorithms
@@ -545,16 +572,19 @@ const wordIndex = prng.nextInt(0, words.length);
 ## Performance Benchmarks
 
 ### Unit Tests
+
 - **Target:** <1 second for entire suite
 - **Current:** ~500ms (all unit tests)
 - **Goal:** <100ms per test file
 
 ### Integration Tests
+
 - **Target:** <1 second for entire suite
 - **Current:** ~400ms (33 tests)
 - **Goal:** <100ms per API call
 
 ### E2E Tests
+
 - **Target:** <30 seconds per test
 - **Current:** Not yet implemented
 - **Goal:** <5 minutes for full suite
@@ -564,6 +594,7 @@ const wordIndex = prng.nextInt(0, words.length);
 ## Resources
 
 ### Documentation
+
 - [Vitest Documentation](https://vitest.dev/)
 - [Playwright Documentation](https://playwright.dev/)
 - [Devvit Testing Guide](https://developers.reddit.com/docs/guides/tools/playtest)
@@ -572,12 +603,14 @@ const wordIndex = prng.nextInt(0, words.length);
 - Project: `docs/TESTING.md`
 
 ### Key Files
+
 - `vitest.config.ts` - Unit test configuration
 - `vitest.integration.config.ts` - Integration test configuration
 - `playwright.config.ts` - E2E test configuration (if exists)
 - `.github/workflows/test.yml` - CI/CD pipeline
 
 ### Commands Reference
+
 ```bash
 # Unit Tests
 pnpm test                           # Run all unit tests

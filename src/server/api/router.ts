@@ -30,6 +30,10 @@ import {
   APIErrorCode,
   createAPIError,
 } from '../utils/response.formatter';
+import {
+  errorHandlingMiddleware,
+  wrapAsyncHandler,
+} from '../utils/error-handler';
 
 /**
  * Creates and configures the API router with all endpoints and middleware.
@@ -78,42 +82,51 @@ export function createAPIRouter(redis: RedisClient): express.Router {
   });
 
   // GET /api/init - Initialize game state
-  router.get('/init', async (req: Request, res: Response) => {
-    await handleInit(
-      req,
-      res,
-      seedingService,
-      dataService,
-      identityService,
-      telemetryService
-    );
-  });
+  router.get(
+    '/init',
+    wrapAsyncHandler(async (req: Request, res: Response) => {
+      await handleInit(
+        req,
+        res,
+        seedingService,
+        dataService,
+        identityService,
+        telemetryService
+      );
+    })
+  );
 
   // POST /api/pick - Submit word choices (rate limited)
-  router.post('/pick', async (req: Request, res: Response) => {
-    await handlePick(
-      req,
-      res,
-      seedingService,
-      dataService,
-      identityService,
-      telemetryService,
-      rateLimitService
-    );
-  });
+  router.post(
+    '/pick',
+    wrapAsyncHandler(async (req: Request, res: Response) => {
+      await handlePick(
+        req,
+        res,
+        seedingService,
+        dataService,
+        identityService,
+        telemetryService,
+        rateLimitService
+      );
+    })
+  );
 
   // GET /api/progress - Get voting progress
-  router.get('/progress', async (req: Request, res: Response) => {
-    await handleProgress(
-      req,
-      res,
-      dataService,
-      identityService,
-      telemetryService
-    );
-  });
+  router.get(
+    '/progress',
+    wrapAsyncHandler(async (req: Request, res: Response) => {
+      await handleProgress(
+        req,
+        res,
+        dataService,
+        identityService,
+        telemetryService
+      );
+    })
+  );
 
-  // Error handling middleware for unknown API routes
+  // 404 handler for unknown API routes
   router.use((req: Request, res: Response) => {
     const apiError = createAPIError(
       APIErrorCode.INTERNAL_ERROR,
@@ -130,6 +143,9 @@ export function createAPIRouter(redis: RedisClient): express.Router {
     );
     sendErrorResponse(res, apiError);
   });
+
+  // Centralized error handling middleware (must be last)
+  router.use(errorHandlingMiddleware);
 
   return router;
 }
