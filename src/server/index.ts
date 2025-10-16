@@ -101,6 +101,10 @@ async function setupServer() {
   // Serve static files from public directory
   app.use(express.static('public'));
 
+  // Mount API router for client-facing endpoints
+  const { createAPIRouter } = await import('./api/router.js');
+  app.use('/api', createAPIRouter(redis));
+
   // Health check endpoint - validates server is running
   app.get('/api/health', async (req, res) => {
     try {
@@ -269,9 +273,20 @@ async function setupServer() {
     app.post('/api/test/tallies', async (req, res) => {
       try {
         const { date, words } = req.body;
-        await dataService.incrementTallies(date, words);
-        const topWords = await dataService.getTopWords(date, 10);
-        res.json({ success: true, topWords });
+
+        if (words) {
+          // If words provided, increment tallies
+          await dataService.incrementTallies(date, words);
+        }
+
+        // Get current tallies (more for testing)
+        const topWords = await dataService.getTopWords(date, 50);
+
+        res.json({
+          success: true,
+          tallies: topWords,
+          topWords, // Keep both for backward compatibility
+        });
       } catch (error) {
         res.status(500).json({
           success: false,
@@ -292,6 +307,71 @@ async function setupServer() {
         }
         const telemetry = await telemetryService.getTelemetry(date);
         res.json({ success: true, telemetry });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    });
+
+    // Test endpoint: Pick endpoint (for integration testing)
+    app.post('/api/test/pick', async (req, res) => {
+      try {
+        const { words, date, userId } = req.body;
+
+        if (!userId) {
+          return res.status(401).json({
+            error: {
+              code: 'UNAUTHORIZED',
+              message: 'User authentication required',
+            },
+          });
+        }
+
+        // Import and use the actual pick endpoint handler
+        const { handlePick } = await import('./api/pick.endpoint');
+        const { RateLimitService } = await import(
+          './services/rate-limit.service'
+        );
+        const rateLimitService = new RateLimitService(redis);
+
+        // Create mock request/response objects
+        const mockReq = {
+          body: { words, date },
+        } as any;
+
+        let responseData: any = null;
+        let statusCode = 200;
+
+        const mockRes = {
+          json: (data: any) => {
+            responseData = data;
+          },
+          status: (code: number) => {
+            statusCode = code;
+            return mockRes;
+          },
+          set: () => mockRes,
+        } as any;
+
+        // Mock the Devvit context for testing
+        const originalContext = (await import('@devvit/server')).context;
+        (originalContext as any).userId = userId;
+
+        // Call the actual pick handler
+        await handlePick(
+          mockReq,
+          mockRes,
+          testSeedingService as any, // Use test seeding service
+          dataService,
+          identityService,
+          telemetryService,
+          rateLimitService
+        );
+
+        // Return the response
+        res.status(statusCode).json(responseData);
       } catch (error) {
         res.status(500).json({
           success: false,

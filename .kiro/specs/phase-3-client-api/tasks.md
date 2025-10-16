@@ -22,7 +22,10 @@
   - Test word count limits and boundary conditions
   - _Requirements: 5.1, 5.2, 5.3_
 
-- [-] 2. Implement rate limiting service
+- [x] 2. Implement rate limiting service
+
+
+
 
   - Create Redis-based rate limiting for /api/pick endpoint (1 req per 3 seconds per user)
   - Use hashed user ID as rate limit key with 5-second TTL
@@ -30,27 +33,41 @@
   - Handle Redis connection failures gracefully
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 2.1 Write unit tests for rate limiting logic
+- [x] 2.1 Write unit tests for rate limiting logic
+
+
 
   - Test rate limit enforcement and TTL behavior
   - Test Redis failure scenarios and graceful degradation
   - Test concurrent rate limit checks
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 3. Create response formatter utility
+- [x] 3. Create response formatter utility
+
+
+
+
   - Implement standardized success response formatting
   - Create structured error response formatting with consistent JSON structure
   - Add HTTP status code mapping for different error types
   - Include response timestamp and request tracing
   - _Requirements: 5.5, 5.6, 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ]* 3.1 Write unit tests for response formatting
+- [x] 3.1 Write unit tests for response formatting
+
+
+
   - Test success response structure consistency
   - Test error response formatting with various error codes
   - Test HTTP status code mapping correctness
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 4. Implement /api/init endpoint
+- [x] 4. Implement /api/init endpoint
+
+
+
+
+
   - Extract user context from Devvit middleware and hash user ID
   - Generate or retrieve daily seed using SeedingService
   - Generate user's personal word set using seeding engine
@@ -59,7 +76,12 @@
   - Return structured response with seedPreview, myWords, progress, timeLeftSec
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 6.1, 6.2, 9.1, 9.2_
 
-- [ ] 5. Implement /api/pick endpoint with validation
+- [x] 5. Implement /api/pick endpoint with validation
+
+
+
+
+
   - Extract and validate user context from Devvit middleware
   - Apply rate limiting (1 request per 3 seconds per user)
   - Validate request body (words array and date format)
@@ -69,7 +91,11 @@
   - Return accepted words and updated top words list
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 4.1, 6.1, 6.2, 9.3, 9.4_
 
-- [ ] 6. Implement /api/progress endpoint
+- [x] 6. Implement /api/progress endpoint
+
+
+
+
   - Extract user context and validate date parameter
   - Retrieve current top words from Redis sorted set
   - Get user's previously submitted choices (if any)
